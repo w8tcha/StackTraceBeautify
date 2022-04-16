@@ -2,6 +2,8 @@
 
 .NET Port of [netStack.js](https://github.com/elmahio/netStack.js)
 
+[![NuGet](https://img.shields.io/nuget/v/StackTraceBeautify.svg)](https://nuget.org/packages/StackTraceBeautify)
+
 A simple and Libary for highlighting .NET stack traces. It converts a Stack Trace (String) in to an html highlighted (beautified) String
 
 #### Stacktrace - Language support
