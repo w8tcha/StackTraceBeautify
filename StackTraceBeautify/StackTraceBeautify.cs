@@ -96,19 +96,19 @@ public class StackTraceBeautify
                 continue;
             }
 
-            if (Regex.IsMatch(line, @"(\s*)at .*\)"))
+            if (Regex.IsMatch(line, @"(\s+)at .*\)"))
             {
                 lang = "english";
             }
-            else if (Regex.IsMatch(line, @"(\s*)ved .*\)"))
+            else if (Regex.IsMatch(line, @"(\s+)ved .*\)"))
             {
                 lang = "danish";
             }
-            else if (Regex.IsMatch(line, @"(\s*)bei .*\)"))
+            else if (Regex.IsMatch(line, @"(\s+)bei .*\)"))
             {
                 lang = "german";
             }
-            else if (Regex.IsMatch(line, @"(\s*)в .*\)"))
+            else if (Regex.IsMatch(line, @"(\s+)в .*\)"))
             {
                 lang = "russian";
             }
@@ -124,7 +124,7 @@ public class StackTraceBeautify
         // Pretty print result if is set to true
         if (this.options.PrettyPrint)
         {
-            sanitizedStack = FormatException(sanitizedStack, selectedLanguage.At);
+            sanitizedStack = FormatException(sanitizedStack, this.selectedLanguage.At);
             lines = sanitizedStack.Split('\n');
         }
 
@@ -133,15 +133,15 @@ public class StackTraceBeautify
             var line = lines[i];
             var li = line;
 
-            var hli = new Regex($@"(\S*){selectedLanguage.At} .*\)");
+            var hli = new Regex($@"(\S*){this.selectedLanguage.At} .*\)");
 
             if (hli.IsMatch(line))
             {
                 // Frame
-                var regFrame = new Regex($@"(\S*){selectedLanguage.At} .*\)");
+                var regFrame = new Regex($@"(\S*){this.selectedLanguage.At} .*\)");
                 var partsFrame = regFrame.Match(line).Value;
 
-                partsFrame = partsFrame.Replace($"{selectedLanguage.At} ", string.Empty);
+                partsFrame = partsFrame.Replace($"{this.selectedLanguage.At} ", string.Empty);
 
                 // Frame -> ParameterList
                 var regParamList = new Regex("\\(.*\\)");
@@ -192,15 +192,15 @@ public class StackTraceBeautify
                     .Replace(partsTypeMethod, stringTypeMethod);
 
                 // Line
-                var regLine = new Regex($"(:{selectedLanguage.Line}.*)");
+                var regLine = new Regex($"(:{this.selectedLanguage.Line}.*)");
 
                 var partsLine = regLine.Match(line).Value;
                 partsLine = partsLine.Replace(":", string.Empty).Replace("\r", string.Empty);
 
                 // File => (!) text requires multiline to exec regex, otherwise it will return null.
-                var regFile = new Regex($"({selectedLanguage.In}\\s.*)", RegexOptions.Multiline);
+                var regFile = new Regex($"({this.selectedLanguage.In}\\s.*)", RegexOptions.Multiline);
                 var partsFile = regFile.Match(line).Value;
-                partsFile = partsFile.Replace($"{selectedLanguage.In} ", string.Empty)
+                partsFile = partsFile.Replace($"{this.selectedLanguage.In} ", string.Empty)
                     .Replace($":{partsLine}", string.Empty);
 
                 li = li.Replace(partsFrame, $"<span class=\"{this.options.FrameCssClass}\">{newPartsFrame}</span>");

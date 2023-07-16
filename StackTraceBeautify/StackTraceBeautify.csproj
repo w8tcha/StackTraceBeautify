@@ -1,12 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <TargetFrameworks>net48;netstandard2.1;net6.0</TargetFrameworks>
+	  <TargetFrameworks>net48;netstandard2.1;net7.0</TargetFrameworks>
 	  <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
 	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 	  <Description>A simple and Libary for highlighting .NET stack traces. It converts a Stack Trace (String) in to an html highlighted (beautified) String</Description>
 	  <PackageReadmeFile>README.md</PackageReadmeFile>
 	  <RepositoryType>git</RepositoryType>
+	  <PackageProjectUrl>https://github.com/w8tcha/StackTraceBeautify</PackageProjectUrl>
+	  <RepositoryUrl>https://github.com/w8tcha/StackTraceBeautify</RepositoryUrl>
+	  <PackageTags>stacktrace;exception;log</PackageTags>
+	  <Version>$(VersionPrefix)</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
