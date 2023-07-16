@@ -2,7 +2,7 @@
 
 .NET Port of [netStack.js](https://github.com/elmahio/netStack.js)
 
-[![NuGet](https://img.shields.io/nuget/v/StackTraceBeautify.svg)](https://nuget.org/packages/StackTraceBeautify) [![license](https://img.shields.io/hexpm/l/plug.svg?style=flat-square)](#)
+[![NuGet](https://img.shields.io/nuget/v/StackTraceBeautify.svg)](https://nuget.org/packages/StackTraceBeautify) [![license](https://img.shields.io/hexpm/l/plug.svg)](#)
 
 ![build status](https://github.com/w8tcha/StackTraceBeautify/actions/workflows/build.yml/badge.svg)
 
