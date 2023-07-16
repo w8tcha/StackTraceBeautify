@@ -4,6 +4,8 @@
 
 [![NuGet](https://img.shields.io/nuget/v/StackTraceBeautify.svg)](https://nuget.org/packages/StackTraceBeautify)
 
+![build status](https://github.com/w8tcha/StackTraceBeautify/actions/workflows/build.yml/badge.svg)
+
 A simple and Libary for highlighting .NET stack traces. It converts a Stack Trace (String) in to an html highlighted (beautified) String
 
 #### Stacktrace - Language support
