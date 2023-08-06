@@ -1,4 +1,5 @@
 # StackTraceBeautify
+========================
 
 .NET Port of [netStack.js](https://github.com/elmahio/netStack.js)
 
