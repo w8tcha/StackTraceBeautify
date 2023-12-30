@@ -28,24 +28,24 @@ public class StackTraceBeautify
     /// <summary>
     /// The options.
     /// </summary>
-    private readonly Options options;
+    private readonly Options _options;
 
     /// <summary>
     /// The languages.
     /// </summary>
-    private readonly List<Language> languages;
+    private readonly List<Language> _languages;
 
     /// <summary>
     /// The selected language.
     /// </summary>
-    private Language selectedLanguage;
+    private Language _selectedLanguage;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="StackTraceBeautify"/> class.
     /// </summary>
     public StackTraceBeautify()
     {
-        this.options = new Options
+        this._options = new Options
                            {
                                PrettyPrint = true,
                                FrameCssClass = "st-frame",
@@ -58,7 +58,7 @@ public class StackTraceBeautify
                                LineCssClass = "st-line"
                            };
 
-        this.languages = InitializeLanguages();
+        this._languages = InitializeLanguages();
     }
 
     /// <summary>
@@ -66,13 +66,13 @@ public class StackTraceBeautify
     /// </summary>
     public StackTraceBeautify(Options option)
     {
-        this.options = option;
+        this._options = option;
 
-        this.languages = InitializeLanguages();
+        this._languages = InitializeLanguages();
     }
 
     /// <summary>
-    /// Converts a Stack Trace (string) in to an html highlighted (beautified) string
+    /// Converts a Stack Trace (string) in to a html highlighted (beautified) string
     /// </summary>
     /// <param name="stackTrace">
     /// The stack trace.
@@ -89,13 +89,8 @@ public class StackTraceBeautify
         var clone = new StringBuilder();
 
         // search for language
-        foreach (var line in lines)
+        foreach (var line in lines.Where(_ => lang == string.Empty))
         {
-            if (lang != string.Empty)
-            {
-                continue;
-            }
-
             if (Regex.IsMatch(line, @"(\s+)at .*\)"))
             {
                 lang = "english";
@@ -112,6 +107,10 @@ public class StackTraceBeautify
             {
                 lang = "russian";
             }
+            else if (Regex.IsMatch(line, @"(\s+)在 .*\)"))
+            {
+                lang = "chinese";
+            }
         }
 
         if (lang == string.Empty)
@@ -119,12 +118,12 @@ public class StackTraceBeautify
             return clone.ToString();
         }
 
-        this.selectedLanguage = Search(lang, this.languages);
+        this._selectedLanguage = Search(lang, this._languages);
 
         // Pretty print result if is set to true
-        if (this.options.PrettyPrint)
+        if (this._options.PrettyPrint)
         {
-            sanitizedStack = FormatException(sanitizedStack, this.selectedLanguage.At);
+            sanitizedStack = FormatException(sanitizedStack, this._selectedLanguage.At);
             lines = sanitizedStack.Split('\n');
         }
 
@@ -133,18 +132,18 @@ public class StackTraceBeautify
             var line = lines[i];
             var li = line;
 
-            var hli = new Regex($@"(\S*){this.selectedLanguage.At} .*\)");
+            var hli = new Regex($@"(\S*){this._selectedLanguage.At} .*\)");
 
             if (hli.IsMatch(line))
             {
                 // Frame
-                var regFrame = new Regex($@"(\S*){this.selectedLanguage.At} .*\)");
+                var regFrame = new Regex($@"(\S*){this._selectedLanguage.At} .*\)");
                 var partsFrame = regFrame.Match(line).Value;
 
-                partsFrame = partsFrame.Replace($"{this.selectedLanguage.At} ", string.Empty);
+                partsFrame = partsFrame.Replace($"{this._selectedLanguage.At} ", string.Empty);
 
                 // Frame -> ParameterList
-                var regParamList = new Regex("\\(.*\\)");
+                var regParamList = new Regex(@"\(.*\)");
 
                 var partsParamList = regParamList.Match(line).Value;
 
@@ -171,48 +170,48 @@ public class StackTraceBeautify
                     }
 
                     var theParam =
-                        $"<span class=\"{this.options.ParamTypeCssClass}\">{paramType}</span> <span class=\"{this.options.ParamNameCssClass}\">{paramName}</span>";
+                        $"<span class=\"{this._options.ParamTypeCssClass}\">{paramType}</span> <span class=\"{this._options.ParamNameCssClass}\">{paramName}</span>";
 
                     parameterList.Append(index + 1 < arrParams.Length ? $"{theParam}, " : $"{theParam}");
                 }
 
-                var stringParamComplete = $"<span class=\"{this.options.ParamsListCssClass}\">({parameterList})</span>";
+                var stringParamComplete = $"<span class=\"{this._options.ParamsListCssClass}\">({parameterList})</span>";
 
                 // Frame -> Type & Method
                 var partsTypeMethod = partsFrame.Replace(partsParamList, string.Empty).Replace("\r", string.Empty);
                 var arrTypeMethod = partsTypeMethod.Split('.').ToList();
-                var method = arrTypeMethod.Last();
+                var method = arrTypeMethod[arrTypeMethod.Count -1];
 
                 var type = partsTypeMethod.Replace($".{method}", string.Empty);
                 var stringTypeMethod =
-                    $"<span class=\"{this.options.TypeCssClass}\">{type}</span>.<span class=\"{this.options.MethodCssClass}\">{method}</span>";
+                    $"<span class=\"{this._options.TypeCssClass}\">{type}</span>.<span class=\"{this._options.MethodCssClass}\">{method}</span>";
 
                 // Construct Frame
                 var newPartsFrame = partsFrame.Replace(partsParamList, stringParamComplete)
                     .Replace(partsTypeMethod, stringTypeMethod);
 
                 // Line
-                var regLine = new Regex($"(:{this.selectedLanguage.Line}.*)");
+                var regLine = new Regex($"(:{this._selectedLanguage.Line}.*)");
 
                 var partsLine = regLine.Match(line).Value;
                 partsLine = partsLine.Replace(":", string.Empty).Replace("\r", string.Empty);
 
                 // File => (!) text requires multiline to exec regex, otherwise it will return null.
-                var regFile = new Regex($"({this.selectedLanguage.In}\\s.*)", RegexOptions.Multiline);
+                var regFile = new Regex($"({this._selectedLanguage.In}\\s.*)", RegexOptions.Multiline);
                 var partsFile = regFile.Match(line).Value;
-                partsFile = partsFile.Replace($"{this.selectedLanguage.In} ", string.Empty)
+                partsFile = partsFile.Replace($"{this._selectedLanguage.In} ", string.Empty)
                     .Replace($":{partsLine}", string.Empty);
 
-                li = li.Replace(partsFrame, $"<span class=\"{this.options.FrameCssClass}\">{newPartsFrame}</span>");
+                li = li.Replace(partsFrame, $"<span class=\"{this._options.FrameCssClass}\">{newPartsFrame}</span>");
 
                 if (!string.IsNullOrEmpty(partsFile))
                 {
-                    li = li.Replace(partsFile, $"<span class=\"{this.options.FileCssClass}\">{partsFile}</span>");
+                    li = li.Replace(partsFile, $"<span class=\"{this._options.FileCssClass}\">{partsFile}</span>");
                 }
 
                 if (!string.IsNullOrEmpty(partsLine))
                 {
-                    li = li.Replace(partsLine, $"<span class=\"{this.options.LineCssClass}\">{partsLine}</span>");
+                    li = li.Replace(partsLine, $"<span class=\"{this._options.LineCssClass}\">{partsLine}</span>");
                 }
 
                 li = li.Replace("&lt;", "<span>&lt;</span>").Replace("&gt;", "<span>&gt;</span>");
@@ -243,7 +242,7 @@ public class StackTraceBeautify
     /// </returns>
     public string GetLanguage()
     {
-        return this.selectedLanguage?.Name;
+        return this._selectedLanguage?.Name;
     }
 
     /// <summary>
@@ -294,12 +293,13 @@ public class StackTraceBeautify
 
     private static List<Language> InitializeLanguages()
     {
-        return new List<Language>
-                   {
-                       new() {Name = "english", At = "at", In = "in", Line = "line"},
-                       new() {Name = "danish", At = "ved", In = "i", Line = "linje"},
-                       new() {Name = "german", At = "bei", In = "in", Line = "Zeile"},
-                       new() {Name = "russian", At = "в", In = "в", Line = "строка"}
-                   };
+        return
+        [
+            new Language { Name = "english", At = "at", In = "in", Line = "line" },
+            new Language { Name = "danish", At = "ved", In = "i", Line = "linje" },
+            new Language { Name = "german", At = "bei", In = "in", Line = "Zeile" },
+            new Language { Name = "russian", At = "в", In = "в", Line = "строка" },
+            new Language { Name = "chinese", At = "在", In = "位置", Line = "行号" },
+        ];
     }
 }

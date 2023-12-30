@@ -1,5 +1,4 @@
 # StackTraceBeautify
-========================
 
 .NET Port of [netStack.js](https://github.com/elmahio/netStack.js)
 
@@ -16,6 +15,7 @@ A simple and Libary for highlighting .NET stack traces. It converts a Stack Trac
 * Denmark
 * German
 * Russia
+* Chinese
 
 #### Demo
 [Stack Trace Formatter - Online pretty print of .NET stack traces](https://elmah.io/tools/stack-trace-formatter/)
