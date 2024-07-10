@@ -6,8 +6,6 @@
 
 ![build status](https://github.com/w8tcha/StackTraceBeautify/actions/workflows/build.yml/badge.svg)
 
-
-
 A simple Library for highlighting .NET stack traces. It converts a Stack Trace (String) in to an html highlighted (beautified) String
 
 #### Stacktrace - Language support
