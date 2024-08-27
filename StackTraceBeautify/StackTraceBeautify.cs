@@ -161,16 +161,19 @@ public class StackTraceBeautify
                     }
 
                     var cleanedParameter = parameter.TrimStart().Split(' ');
+                    
                     var paramType = cleanedParameter[0];
-                    var paramName = cleanedParameter[1];
-
                     if (string.IsNullOrEmpty(cleanedParameter[0]))
                     {
                         continue;
                     }
 
-                    var theParam =
-                        $"<span class=\"{this._options.ParamTypeCssClass}\">{paramType}</span> <span class=\"{this._options.ParamNameCssClass}\">{paramName}</span>";
+                    var theParam = $"<span class=\"{this._options.ParamTypeCssClass}\">{paramType}</span>";
+                    if (cleanedParameter.Length > 1)
+                    {
+                        var paramName = cleanedParameter[1];
+                        theParam += $" <span class=\"{this._options.ParamNameCssClass}\">{paramName}</span>";";
+                    }
 
                     parameterList.Append(index + 1 < arrParams.Length ? $"{theParam}, " : $"{theParam}");
                 }
