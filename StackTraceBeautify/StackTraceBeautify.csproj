@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <TargetFrameworks>net481;netstandard2.1;net8.0</TargetFrameworks>
+	  <TargetFrameworks>net481;netstandard2.1;net8.0;net9.0</TargetFrameworks>
 	  <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
 	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 	  <Description>A simple and Libary for highlighting .NET stack traces. It converts a Stack Trace (String) in to an html highlighted (beautified) String</Description>

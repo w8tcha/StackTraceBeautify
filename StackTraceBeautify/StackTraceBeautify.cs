@@ -161,7 +161,7 @@ public class StackTraceBeautify
                     }
 
                     var cleanedParameter = parameter.TrimStart().Split(' ');
-                   
+
                     var paramType = cleanedParameter[0];
                     if (string.IsNullOrEmpty(cleanedParameter[0]))
                     {
@@ -183,7 +183,13 @@ public class StackTraceBeautify
                 // Frame -> Type & Method
                 var partsTypeMethod = partsFrame.Replace(partsParamList, string.Empty).Replace("\r", string.Empty);
                 var arrTypeMethod = partsTypeMethod.Split('.').ToList();
+
+
+#if NET8_0_OR_GREATER
+                var method = arrTypeMethod[^1];
+#else
                 var method = arrTypeMethod[arrTypeMethod.Count -1];
+#endif
 
                 var type = partsTypeMethod.Replace($".{method}", string.Empty);
                 var stringTypeMethod =
@@ -302,7 +308,7 @@ public class StackTraceBeautify
             new Language { Name = "danish", At = "ved", In = "i", Line = "linje" },
             new Language { Name = "german", At = "bei", In = "in", Line = "Zeile" },
             new Language { Name = "russian", At = "в", In = "в", Line = "строка" },
-            new Language { Name = "chinese", At = "在", In = "位置", Line = "行号" },
+            new Language { Name = "chinese", At = "在", In = "位置", Line = "行号" }
         ];
     }
 }
