@@ -103,6 +103,10 @@ public class StackTraceBeautify
             {
                 lang = "german";
             }
+            else if (Regex.IsMatch(line, @"(.* en .*)"))
+            {
+                lang = "spanish";
+            }
             else if (Regex.IsMatch(line, @"(\s+)в .*\)"))
             {
                 lang = "russian";
@@ -307,6 +311,7 @@ public class StackTraceBeautify
             new Language { Name = "english", At = "at", In = "in", Line = "line" },
             new Language { Name = "danish", At = "ved", In = "i", Line = "linje" },
             new Language { Name = "german", At = "bei", In = "in", Line = "Zeile" },
+            new Language { Name = "spanish", At = "at", In = "en", Line = "línea" },
             new Language { Name = "russian", At = "в", In = "в", Line = "строка" },
             new Language { Name = "chinese", At = "在", In = "位置", Line = "行号" }
         ];

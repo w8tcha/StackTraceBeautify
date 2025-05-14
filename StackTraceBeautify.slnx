@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="StackTraceBeautify.Tests/StackTraceBeautify.Tests.csproj" />
+  <Project Path="StackTraceBeautify/StackTraceBeautify.csproj" />
+</Solution>
