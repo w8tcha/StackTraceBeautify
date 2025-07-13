@@ -13,6 +13,8 @@
  *
  */
 
+using AwesomeAssertions;
+
 namespace StackTraceBeautify.Tests;
 
 using Xunit;
@@ -50,9 +52,9 @@ public class BeautifyTests
 
         var result = beautify.Beautify(stack);
 
-        Assert.Equal("english", beautify.GetLanguage());
+        beautify.GetLanguage().Should().BeEquivalentTo("english");
 
-        Assert.Equal(expected, result);
+        result.Should().BeEquivalentTo(expected);
     }
 
     /// <summary>
@@ -73,9 +75,9 @@ public class BeautifyTests
 
         var result = beautify.Beautify(stack);
 
-        Assert.Equal("english", beautify.GetLanguage());
+        beautify.GetLanguage().Should().BeEquivalentTo("english");
 
-        Assert.Equal(expected, result);
+        result.Should().BeEquivalentTo(expected);
     }
 
     /// <summary>
@@ -98,9 +100,9 @@ public class BeautifyTests
 
         var result = beautify.Beautify(stack);
 
-        Assert.Equal("english", beautify.GetLanguage());
+        beautify.GetLanguage().Should().BeEquivalentTo("english");
 
-        Assert.Equal(expected, result);
+        result.Should().BeEquivalentTo(expected);
     }
 
     /// <summary>
@@ -121,9 +123,9 @@ public class BeautifyTests
 
         var result = beautify.Beautify(stack);
 
-        Assert.Equal("german", beautify.GetLanguage());
+        beautify.GetLanguage().Should().BeEquivalentTo("german");
 
-        Assert.Equal(expected, result);
+        result.Should().BeEquivalentTo(expected);
     }
 
     /// <summary>
@@ -144,9 +146,9 @@ public class BeautifyTests
 
         var result = beautify.Beautify(stack);
 
-        Assert.Equal("danish", beautify.GetLanguage());
+        beautify.GetLanguage().Should().BeEquivalentTo("danish");
 
-        Assert.Equal(expected, result);
+        result.Should().BeEquivalentTo(expected);
     }
 
     /// <summary>
@@ -167,9 +169,9 @@ public class BeautifyTests
 
         var result = beautify.Beautify(stack);
 
-        Assert.Equal("russian", beautify.GetLanguage());
+        beautify.GetLanguage().Should().BeEquivalentTo("russian");
 
-        Assert.Equal(expected, result);
+        result.Should().BeEquivalentTo(expected);
     }
 
     /// <summary>
@@ -186,8 +188,8 @@ public class BeautifyTests
 
         var result = beautify.Beautify(stack);
 
-        Assert.Equal("chinese", beautify.GetLanguage());
+        beautify.GetLanguage().Should().BeEquivalentTo("chinese");
 
-        Assert.Equal(expected, result);
+        result.Should().BeEquivalentTo(expected);
     }
 }

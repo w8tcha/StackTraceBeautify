@@ -82,7 +82,7 @@ public class StackTraceBeautify
     /// </returns>
     public string Beautify(string stackTrace)
     {
-        var sanitizedStack = stackTrace.Replace("<", "&lt;").Replace(">", "&gt;");
+        var sanitizedStack = stackTrace.Trim().Replace("<", "&lt;").Replace(">", "&gt;");
 
         var lines = sanitizedStack.Split('\n');
         var lang = string.Empty;
@@ -130,6 +130,9 @@ public class StackTraceBeautify
             sanitizedStack = FormatException(sanitizedStack, this._selectedLanguage.At);
             lines = sanitizedStack.Split('\n');
         }
+
+        // Trim empty lines
+        lines = lines.Where(line => !string.IsNullOrWhiteSpace(line)).ToArray();
 
         for (int i = 0, j = lines.Length; i < j; ++i)
         {
