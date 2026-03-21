@@ -132,7 +132,7 @@ public class StackTraceBeautify
         }
 
         // Trim empty lines
-        lines = lines.Where(line => !string.IsNullOrWhiteSpace(line)).ToArray();
+        lines = [.. lines.Where(line => !string.IsNullOrWhiteSpace(line))];
 
         for (int i = 0, j = lines.Length; i < j; ++i)
         {

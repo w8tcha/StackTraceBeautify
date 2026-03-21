@@ -17,7 +17,7 @@ using AwesomeAssertions;
 
 namespace StackTraceBeautify.Tests;
 
-using Xunit;
+using NUnit.Framework;
 
 /// <summary>
 /// The beautify tests.
@@ -27,7 +27,7 @@ public class BeautifyTests
     /// <summary>
     /// Beautify Test with English Stack Trace
     /// </summary>
-    [Fact]
+    [Test]
     public void StackTraceEnglishTest1()
     {
         const string expected = """
@@ -60,7 +60,7 @@ public class BeautifyTests
     /// <summary>
     /// Beautify Test with English Stack Trace
     /// </summary>
-    [Fact]
+    [Test]
     public void StackTraceEnglishTest2()
     {
         const string expected = """
@@ -83,7 +83,7 @@ public class BeautifyTests
     /// <summary>
     /// Beautify Test with English.
     /// </summary>
-    [Fact]
+    [Test]
     public void StackTraceEnglishTest3()
     {
         const string expected = """
@@ -108,7 +108,7 @@ public class BeautifyTests
     /// <summary>
     /// Beautify Test with German Stack Trace
     /// </summary>
-    [Fact]
+    [Test]
     public void StackTraceGermanTest1()
     {
         const string expected = """
@@ -131,7 +131,7 @@ public class BeautifyTests
     /// <summary>
     /// Beautify Test with Danish Stack Trace
     /// </summary>
-    [Fact]
+    [Test]
     public void StackTraceDanishTest1()
     {
         const string expected = """
@@ -154,7 +154,7 @@ public class BeautifyTests
     /// <summary>
     /// Beautify Test with Russian Stack Trace
     /// </summary>
-    [Fact]
+    [Test]
     public void StackTraceRussianTest1()
     {
         const string expected = """
@@ -177,7 +177,7 @@ public class BeautifyTests
     /// <summary>
     /// Beautify Test with Chinese Stack Trace
     /// </summary>
-    [Fact]
+    [Test]
     public void StackTraceChineseTest1()
     {
         const string expected = "System.Exception: Could not load file or assembly 'netstandard, Version=2.1.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51'. 系统找不到指定的文件。 在 System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw() 在 System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task) 在 ClrCustomVisualizerVSHost.VisualizerTargetInternal.<span>&lt;</span>RequestDataAsync<span>&gt;</span>d__10.MoveNext()  在 System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw() 在 System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task) 在 Microsoft.VisualStudio.OutOfProcessVisualizers.VisualizerTarget.<span>&lt;</span>RequestDataAsync<span>&gt;</span>d__10.MoveNext()";
