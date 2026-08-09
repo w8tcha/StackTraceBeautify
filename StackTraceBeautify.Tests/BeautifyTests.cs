@@ -35,7 +35,7 @@ public class BeautifyTests
                                    at <span class="st-frame"><span class="st-type">System.Number</span>.<span class="st-method">ThrowOverflowOrFormatException</span><span class="st-frame-params">(<span class="st-param-type">ParsingStatus</span> <span class="st-param-name">status</span>, <span class="st-param-type">TypeCode</span> <span class="st-param-name">type</span>)</span></span>
                                    at <span class="st-frame"><span class="st-type">System.Number</span>.<span class="st-method">ParseInt32</span><span class="st-frame-params">(<span class="st-param-type">ReadOnlySpan`1</span> <span class="st-param-name">value</span>, <span class="st-param-type">NumberStyles</span> <span class="st-param-name">styles</span>, <span class="st-param-type">NumberFormatInfo</span> <span class="st-param-name">info</span>)</span></span>
                                    at <span class="st-frame"><span class="st-type">System.Int32</span>.<span class="st-method">Parse</span><span class="st-frame-params">(<span class="st-param-type">String</span> <span class="st-param-name">s</span>)</span></span>
-                                   at <span class="st-frame"><span class="st-type">MyNamespace.IntParser</span>.<span class="st-method">Parse</span><span class="st-frame-params">(<span class="st-param-type">String</span> <span class="st-param-name">s</span>)</span></span> in C:\apps\MyNamespace\IntParser.cs:<span class="st-line">line 11</span>
+                                   at <span class="st-frame"><span class="st-type">MyNamespace.IntParser</span>.<span class="st-method">Parse</span><span class="st-frame-params">(<span class="st-param-type">String</span> <span class="st-param-name">s</span>)</span></span> in <span class="st-file">C:\apps\MyNamespace\IntParser.cs</span>:<span class="st-line">line 11</span>
                                    at <span class="st-frame"><span class="st-type">MyNamespace.Program</span>.<span class="st-method">Main</span><span class="st-frame-params">(<span class="st-param-type">String[]</span> <span class="st-param-name">args</span>)</span></span> in <span class="st-file">C:\apps\MyNamespace\Program.cs</span>:<span class="st-line">line 12</span>
                                 """;
 
@@ -147,6 +147,62 @@ public class BeautifyTests
         var result = beautify.Beautify(stack);
 
         beautify.GetLanguage().Should().BeEquivalentTo("danish");
+
+        result.Should().BeEquivalentTo(expected);
+    }
+
+    /// <summary>
+    /// Beautify Test with Spanish Stack Trace (one frame per line).
+    /// </summary>
+    [Test]
+    public void StackTraceSpanishTest1()
+    {
+        const string expected = """
+                                System.FormatException: La cadena de entrada no tenía el formato correcto.
+                                   en <span class="st-frame"><span class="st-type">System.Number</span>.<span class="st-method">ThrowOverflowOrFormatException</span><span class="st-frame-params">(<span class="st-param-type">ParsingStatus</span> <span class="st-param-name">status</span>, <span class="st-param-type">TypeCode</span> <span class="st-param-name">type</span>)</span></span>
+                                   en <span class="st-frame"><span class="st-type">System.Number</span>.<span class="st-method">ParseInt32</span><span class="st-frame-params">(<span class="st-param-type">ReadOnlySpan`1</span> <span class="st-param-name">value</span>, <span class="st-param-type">NumberStyles</span> <span class="st-param-name">styles</span>, <span class="st-param-type">NumberFormatInfo</span> <span class="st-param-name">info</span>)</span></span>
+                                   en <span class="st-frame"><span class="st-type">System.Int32</span>.<span class="st-method">Parse</span><span class="st-frame-params">(<span class="st-param-type">String</span> <span class="st-param-name">s</span>)</span></span>
+                                   en <span class="st-frame"><span class="st-type">MyNamespace.IntParser</span>.<span class="st-method">Parse</span><span class="st-frame-params">(<span class="st-param-type">String</span> <span class="st-param-name">s</span>)</span></span> en C:\apps\MyNamespace\IntParser.cs:<span class="st-line">línea 11</span>
+                                   en <span class="st-frame"><span class="st-type">MyNamespace.Program</span>.<span class="st-method">Main</span><span class="st-frame-params">(<span class="st-param-type">String[]</span> <span class="st-param-name">args</span>)</span></span> en C:\apps\MyNamespace\Program.cs:<span class="st-line">línea 12</span>
+                                """;
+
+        const string stack = """
+                             System.FormatException: La cadena de entrada no tenía el formato correcto.
+                                en System.Number.ThrowOverflowOrFormatException(ParsingStatus status, TypeCode type)
+                                en System.Number.ParseInt32(ReadOnlySpan`1 value, NumberStyles styles, NumberFormatInfo info)
+                                en System.Int32.Parse(String s)
+                                en MyNamespace.IntParser.Parse(String s) en C:\apps\MyNamespace\IntParser.cs:línea 11
+                                en MyNamespace.Program.Main(String[] args) en C:\apps\MyNamespace\Program.cs:línea 12
+                             """;
+
+        var beautify = new StackTraceBeautify();
+
+        var result = beautify.Beautify(stack);
+
+        beautify.GetLanguage().Should().BeEquivalentTo("spanish");
+
+        result.Should().BeEquivalentTo(expected);
+    }
+
+    /// <summary>
+    /// Beautify Test with Spanish Stack Trace (single concatenated line with inner-exception markers).
+    /// </summary>
+    [Test]
+    public void StackTraceSpanishTest2()
+    {
+        const string expected = """
+                                System.ApplicationException: Algo aquí ---<span>&gt;</span> System.FormatException: La cadena de entrada no tenía el formato correcto. en System.Number.ThrowOverflowOrFormatException(ParsingStatus status, TypeCode type) en System.Number.ParseInt32(ReadOnlySpan`1 value, NumberStyles styles, NumberFormatInfo info) en System.Int32.Parse(String s) en MyNamespace.IntParser.Execute(String s) en C:\apps\MyNamespace\IntParser.cs:línea 13  en Elmah.Io.App.Controllers.AccountController.ChangeEmail(String secret) en x:\agent\_work\94\s\src\Elmah.Io.App\Controllers\AccountController.cs:línea 45 en System.Convert.FromBase64CharPtr(Char* inputPtr, Int32 inputLength)  en MyNamespace.IntParser.Execute(String s) en C:\apps\MyNamespace\IntParser.cs:línea 17 en MyNamespace.Program.Main(String[] args) en C:\apps\MyNamespace\Program.cs:línea 13
+                                """;
+
+        const string stack = """
+                             System.ApplicationException: Algo aquí ---> System.FormatException: La cadena de entrada no tenía el formato correcto. en System.Number.ThrowOverflowOrFormatException(ParsingStatus status, TypeCode type) en System.Number.ParseInt32(ReadOnlySpan`1 value, NumberStyles styles, NumberFormatInfo info) en System.Int32.Parse(String s) en MyNamespace.IntParser.Execute(String s) en C:\apps\MyNamespace\IntParser.cs:línea 13 --- Fin del seguimiento de la pila del lugar anterior donde se produjo la excepción --- en Elmah.Io.App.Controllers.AccountController.ChangeEmail(String secret) en x:\agent\_work\94\s\src\Elmah.Io.App\Controllers\AccountController.cs:línea 45 en System.Convert.FromBase64CharPtr(Char* inputPtr, Int32 inputLength) --- Fin del seguimiento de la pila del lugar anterior donde se produjo la excepción --- en MyNamespace.IntParser.Execute(String s) en C:\apps\MyNamespace\IntParser.cs:línea 17 en MyNamespace.Program.Main(String[] args) en C:\apps\MyNamespace\Program.cs:línea 13
+                             """;
+
+        var beautify = new StackTraceBeautify();
+
+        var result = beautify.Beautify(stack);
+
+        beautify.GetLanguage().Should().BeEquivalentTo("spanish");
 
         result.Should().BeEquivalentTo(expected);
     }

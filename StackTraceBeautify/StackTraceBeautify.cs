@@ -15,6 +15,7 @@
 
 namespace StackTraceBeautify;
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -82,6 +83,11 @@ public class StackTraceBeautify
     /// </returns>
     public string Beautify(string stackTrace)
     {
+        if (stackTrace is null)
+        {
+            throw new ArgumentNullException(nameof(stackTrace));
+        }
+
         var sanitizedStack = stackTrace.Trim().Replace("<", "&lt;").Replace(">", "&gt;");
 
         var lines = sanitizedStack.Split('\n');
@@ -103,7 +109,7 @@ public class StackTraceBeautify
             {
                 lang = "german";
             }
-            else if (Regex.IsMatch(line, @"(.* en .*)"))
+            else if (Regex.IsMatch(line, @"(\s+)en .*\)"))
             {
                 lang = "spanish";
             }
@@ -127,7 +133,7 @@ public class StackTraceBeautify
         // Pretty print result if is set to true
         if (this._options.PrettyPrint)
         {
-            sanitizedStack = FormatException(sanitizedStack, this._selectedLanguage.At);
+            sanitizedStack = FormatException(sanitizedStack);
             lines = sanitizedStack.Split('\n');
         }
 
@@ -156,7 +162,7 @@ public class StackTraceBeautify
 
                 // Frame -> Params
                 var partsParams = partsParamList.Replace("(", string.Empty).Replace(")", string.Empty);
-                var arrParams = partsParams.Split(',');
+                var arrParams = SplitParameterList(partsParams);
                 var parameterList = new StringBuilder();
 
                 for (var index = 0; index < arrParams.Length; index++)
@@ -215,7 +221,8 @@ public class StackTraceBeautify
                 // File => (!) text requires multiline to exec regex, otherwise it will return null.
                 var regFile = new Regex($"({this._selectedLanguage.In}\\s.*)", RegexOptions.Multiline);
                 var partsFile = regFile.Match(line).Value;
-                partsFile = partsFile.Replace($"{this._selectedLanguage.In} ", string.Empty)
+                partsFile = partsFile.Replace("\r", string.Empty)
+                    .Replace($"{this._selectedLanguage.In} ", string.Empty)
                     .Replace($":{partsLine}", string.Empty);
 
                 li = li.Replace(partsFrame, $"<span class=\"{this._options.FrameCssClass}\">{newPartsFrame}</span>");
@@ -286,25 +293,66 @@ public class StackTraceBeautify
     /// <param name="exceptionMessage">
     /// The exception message.
     /// </param>
-    /// <param name="languageAt">
-    /// The language At.
-    /// </param>
     /// <returns>
     /// The <see cref="string"/>.
     /// </returns>
-    private static string FormatException(string exceptionMessage, string languageAt)
+    private static string FormatException(string exceptionMessage)
     {
         var regex = new Regex(@"(-{3}\s)(.*?)(-{3})");
-        var regex2 = new Regex($@"(\s){languageAt} ([^-:]*?)\((.*?)\)");
 
-        var result = regex.IsMatch(exceptionMessage) ? regex.Replace(exceptionMessage, string.Empty) : exceptionMessage;
+        return regex.IsMatch(exceptionMessage) ? regex.Replace(exceptionMessage, string.Empty) : exceptionMessage;
+    }
 
-        if (regex2.IsMatch(result))
+    /// <summary>
+    /// Splits a parameter list on commas, without splitting inside nested brackets/parens
+    /// or HTML-entity-escaped generic type argument lists (e.g. "Dictionary`2[System.String,System.Int32]"
+    /// or "Func&amp;lt;T1,T2,TResult&amp;gt;").
+    /// </summary>
+    /// <param name="parameters">
+    /// The raw, comma-separated parameter list text (already stripped of the outer parens).
+    /// </param>
+    /// <returns>
+    /// The individual parameter substrings.
+    /// </returns>
+    private static string[] SplitParameterList(string parameters)
+    {
+        var result = new List<string>();
+        var current = new StringBuilder();
+        var depth = 0;
+
+        for (var i = 0; i < parameters.Length; i++)
         {
-            result = regex.Replace(result, string.Empty);
+            var c = parameters[i];
+
+            if (c is '(' or '[')
+            {
+                depth++;
+            }
+            else if (c is ')' or ']')
+            {
+                depth--;
+            }
+            else if (depth == 0 && c == ',')
+            {
+                result.Add(current.ToString());
+                current.Clear();
+                continue;
+            }
+            else if (c == '&' && string.CompareOrdinal(parameters, i, "&lt;", 0, 4) == 0)
+            {
+                depth++;
+            }
+            else if (c == '&' && string.CompareOrdinal(parameters, i, "&gt;", 0, 4) == 0)
+            {
+                depth--;
+            }
+
+            current.Append(c);
         }
 
-        return result;
+        result.Add(current.ToString());
+
+        return [.. result];
     }
 
     private static List<Language> InitializeLanguages()
@@ -314,7 +362,7 @@ public class StackTraceBeautify
             new Language { Name = "english", At = "at", In = "in", Line = "line" },
             new Language { Name = "danish", At = "ved", In = "i", Line = "linje" },
             new Language { Name = "german", At = "bei", In = "in", Line = "Zeile" },
-            new Language { Name = "spanish", At = "at", In = "en", Line = "línea" },
+            new Language { Name = "spanish", At = "en", In = "en", Line = "línea" },
             new Language { Name = "russian", At = "в", In = "в", Line = "строка" },
             new Language { Name = "chinese", At = "在", In = "位置", Line = "行号" }
         ];

@@ -12,6 +12,7 @@ A simple Library for highlighting .NET stack traces. It converts a Stack Trace (
 * English
 * Denmark
 * German
+* Spanish
 * Russia
 * Chinese
 

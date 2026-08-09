@@ -10,8 +10,9 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <VersionPrefix>1.0.2</VersionPrefix>
-    <AssemblyVersion>1.0.2</AssemblyVersion>
+	  <Version>1.0.1</Version>
+	  <VersionPrefix>1.0.1</VersionPrefix>
+    <AssemblyVersion>1.0.1</AssemblyVersion>
   </PropertyGroup>
 
   <PropertyGroup Label="Copyright Info">
