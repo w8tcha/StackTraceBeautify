@@ -121,6 +121,14 @@ public class StackTraceBeautify
             {
                 lang = "chinese";
             }
+            else if (Regex.IsMatch(line, @"(\s+)à .*\)"))
+            {
+                lang = "french";
+            }
+            else if (Regex.IsMatch(line, @"(\s+)場所 .*\)"))
+            {
+                lang = "japanese";
+            }
         }
 
         if (lang == string.Empty)
@@ -364,7 +372,9 @@ public class StackTraceBeautify
             new Language { Name = "german", At = "bei", In = "in", Line = "Zeile" },
             new Language { Name = "spanish", At = "en", In = "en", Line = "línea" },
             new Language { Name = "russian", At = "в", In = "в", Line = "строка" },
-            new Language { Name = "chinese", At = "在", In = "位置", Line = "行号" }
+            new Language { Name = "chinese", At = "在", In = "位置", Line = "行号" },
+            new Language { Name = "french", At = "à", In = "dans", Line = "ligne" },
+            new Language { Name = "japanese", At = "場所", In = "場所", Line = "行" }
         ];
     }
 }

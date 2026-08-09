@@ -9,11 +9,13 @@
 A simple Library for highlighting .NET stack traces. It converts a Stack Trace (String) in to an html highlighted (beautified) String
 
 #### Stacktrace - Language support
+* Danish
 * English
-* Denmark
+* French
+* Japanese
 * German
 * Spanish
-* Russia
+* Russian
 * Chinese
 
 #### Demo

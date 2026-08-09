@@ -248,4 +248,70 @@ public class BeautifyTests
 
         result.Should().BeEquivalentTo(expected);
     }
+
+    /// <summary>
+    /// Beautify Test with French Stack Trace (one frame per line).
+    /// </summary>
+    [Test]
+    public void StackTraceFrenchTest1()
+    {
+        const string expected = """
+                                System.FormatException: La chaîne d'entrée était dans un format incorrect.
+                                   à <span class="st-frame"><span class="st-type">System.Number</span>.<span class="st-method">ThrowOverflowOrFormatException</span><span class="st-frame-params">(<span class="st-param-type">ParsingStatus</span> <span class="st-param-name">status</span>, <span class="st-param-type">TypeCode</span> <span class="st-param-name">type</span>)</span></span>
+                                   à <span class="st-frame"><span class="st-type">System.Number</span>.<span class="st-method">ParseInt32</span><span class="st-frame-params">(<span class="st-param-type">ReadOnlySpan`1</span> <span class="st-param-name">value</span>, <span class="st-param-type">NumberStyles</span> <span class="st-param-name">styles</span>, <span class="st-param-type">NumberFormatInfo</span> <span class="st-param-name">info</span>)</span></span>
+                                   à <span class="st-frame"><span class="st-type">System.Int32</span>.<span class="st-method">Parse</span><span class="st-frame-params">(<span class="st-param-type">String</span> <span class="st-param-name">s</span>)</span></span>
+                                   à <span class="st-frame"><span class="st-type">MyNamespace.IntParser</span>.<span class="st-method">Parse</span><span class="st-frame-params">(<span class="st-param-type">String</span> <span class="st-param-name">s</span>)</span></span> dans <span class="st-file">C:\apps\MyNamespace\IntParser.cs</span>:<span class="st-line">ligne 11</span>
+                                   à <span class="st-frame"><span class="st-type">MyNamespace.Program</span>.<span class="st-method">Main</span><span class="st-frame-params">(<span class="st-param-type">String[]</span> <span class="st-param-name">args</span>)</span></span> dans <span class="st-file">C:\apps\MyNamespace\Program.cs</span>:<span class="st-line">ligne 12</span>
+                                """;
+
+        const string stack = """
+                             System.FormatException: La chaîne d'entrée était dans un format incorrect.
+                                à System.Number.ThrowOverflowOrFormatException(ParsingStatus status, TypeCode type)
+                                à System.Number.ParseInt32(ReadOnlySpan`1 value, NumberStyles styles, NumberFormatInfo info)
+                                à System.Int32.Parse(String s)
+                                à MyNamespace.IntParser.Parse(String s) dans C:\apps\MyNamespace\IntParser.cs:ligne 11
+                                à MyNamespace.Program.Main(String[] args) dans C:\apps\MyNamespace\Program.cs:ligne 12
+                             """;
+
+        var beautify = new StackTraceBeautify();
+
+        var result = beautify.Beautify(stack);
+
+        beautify.GetLanguage().Should().BeEquivalentTo("french");
+
+        result.Should().BeEquivalentTo(expected);
+    }
+
+    /// <summary>
+    /// Beautify Test with Japanese Stack Trace (one frame per line).
+    /// </summary>
+    [Test]
+    public void StackTraceJapaneseTest1()
+    {
+        const string expected = """
+                                System.FormatException: 入力文字列の形式が正しくありません。
+                                   場所 <span class="st-frame"><span class="st-type">System.Number</span>.<span class="st-method">ThrowOverflowOrFormatException</span><span class="st-frame-params">(<span class="st-param-type">ParsingStatus</span> <span class="st-param-name">status</span>, <span class="st-param-type">TypeCode</span> <span class="st-param-name">type</span>)</span></span>
+                                   場所 <span class="st-frame"><span class="st-type">System.Number</span>.<span class="st-method">ParseInt32</span><span class="st-frame-params">(<span class="st-param-type">ReadOnlySpan`1</span> <span class="st-param-name">value</span>, <span class="st-param-type">NumberStyles</span> <span class="st-param-name">styles</span>, <span class="st-param-type">NumberFormatInfo</span> <span class="st-param-name">info</span>)</span></span>
+                                   場所 <span class="st-frame"><span class="st-type">System.Int32</span>.<span class="st-method">Parse</span><span class="st-frame-params">(<span class="st-param-type">String</span> <span class="st-param-name">s</span>)</span></span>
+                                   場所 <span class="st-frame"><span class="st-type">MyNamespace.IntParser</span>.<span class="st-method">Parse</span><span class="st-frame-params">(<span class="st-param-type">String</span> <span class="st-param-name">s</span>)</span></span> 場所 C:\apps\MyNamespace\IntParser.cs:<span class="st-line">行 11</span>
+                                   場所 <span class="st-frame"><span class="st-type">MyNamespace.Program</span>.<span class="st-method">Main</span><span class="st-frame-params">(<span class="st-param-type">String[]</span> <span class="st-param-name">args</span>)</span></span> 場所 C:\apps\MyNamespace\Program.cs:<span class="st-line">行 12</span>
+                                """;
+
+        const string stack = """
+                             System.FormatException: 入力文字列の形式が正しくありません。
+                                場所 System.Number.ThrowOverflowOrFormatException(ParsingStatus status, TypeCode type)
+                                場所 System.Number.ParseInt32(ReadOnlySpan`1 value, NumberStyles styles, NumberFormatInfo info)
+                                場所 System.Int32.Parse(String s)
+                                場所 MyNamespace.IntParser.Parse(String s) 場所 C:\apps\MyNamespace\IntParser.cs:行 11
+                                場所 MyNamespace.Program.Main(String[] args) 場所 C:\apps\MyNamespace\Program.cs:行 12
+                             """;
+
+        var beautify = new StackTraceBeautify();
+
+        var result = beautify.Beautify(stack);
+
+        beautify.GetLanguage().Should().BeEquivalentTo("japanese");
+
+        result.Should().BeEquivalentTo(expected);
+    }
 }
