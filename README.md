@@ -9,14 +9,9 @@
 A simple Library for highlighting .NET stack traces. It converts a Stack Trace (String) in to an html highlighted (beautified) String
 
 #### Stacktrace - Language support
-* Danish
-* English
-* French
-* Japanese
-* German
-* Spanish
-* Russian
-* Chinese
+The parser does not depend on the language of the stack trace. Frames are recognized by their structure
+(`<at> Type.Method(params) [<in> file:<line> number]`), so stack traces in any language are supported,
+e.g. Danish, English, French, Japanese, German, Spanish, Russian, Chinese, ...
 
 #### Demo
 [Stack Trace Formatter - Online pretty print of .NET stack traces](https://elmah.io/tools/stack-trace-formatter/)

@@ -27,6 +27,14 @@ using System.Text.RegularExpressions;
 public class StackTraceBeautify
 {
     /// <summary>
+    /// Matches a complete stack frame line, independent of the language of the stack trace:
+    /// "{at} Type.Method(params)", optionally followed by " {in} file:{line} number".
+    /// </summary>
+    private static readonly Regex FrameRegex = new(
+        @"^\s*(?<at>\S+)\s+(?<frame>(?<typeMethod>[^\s()]*\.[^\s()]+)\((?<params>[^()]*)\))(?:\s+\S+\s+(?<file>.+?):(?<line>[^\s:]+\s+\d+))?\s*$",
+        RegexOptions.Compiled);
+
+    /// <summary>
     /// The options.
     /// </summary>
     private readonly Options _options;
@@ -90,186 +98,37 @@ public class StackTraceBeautify
 
         var sanitizedStack = stackTrace.Trim().Replace("<", "&lt;").Replace(">", "&gt;");
 
-        var lines = sanitizedStack.Split('\n');
-        var lang = string.Empty;
-        var clone = new StringBuilder();
-
-        // search for language
-        foreach (var line in lines.Where(_ => lang == string.Empty))
-        {
-            if (Regex.IsMatch(line, @"(\s+)at .*\)"))
-            {
-                lang = "english";
-            }
-            else if (Regex.IsMatch(line, @"(\s+)ved .*\)"))
-            {
-                lang = "danish";
-            }
-            else if (Regex.IsMatch(line, @"(\s+)bei .*\)"))
-            {
-                lang = "german";
-            }
-            else if (Regex.IsMatch(line, @"(\s+)en .*\)"))
-            {
-                lang = "spanish";
-            }
-            else if (Regex.IsMatch(line, @"(\s+)в .*\)"))
-            {
-                lang = "russian";
-            }
-            else if (Regex.IsMatch(line, @"(\s+)在 .*\)"))
-            {
-                lang = "chinese";
-            }
-            else if (Regex.IsMatch(line, @"(\s+)à .*\)"))
-            {
-                lang = "french";
-            }
-            else if (Regex.IsMatch(line, @"(\s+)場所 .*\)"))
-            {
-                lang = "japanese";
-            }
-        }
-
-        if (lang == string.Empty)
-        {
-            return clone.ToString();
-        }
-
-        this._selectedLanguage = Search(lang, this._languages);
-
         // Pretty print result if is set to true
         if (this._options.PrettyPrint)
         {
             sanitizedStack = FormatException(sanitizedStack);
-            lines = sanitizedStack.Split('\n');
         }
 
         // Trim empty lines
-        lines = [.. lines.Where(line => !string.IsNullOrWhiteSpace(line))];
+        var lines = sanitizedStack.Split('\n').Where(line => !string.IsNullOrWhiteSpace(line)).ToArray();
+
+        this._selectedLanguage = null;
+
+        var clone = new StringBuilder();
 
         for (int i = 0, j = lines.Length; i < j; ++i)
         {
-            var line = lines[i];
-            var li = line;
+            var li = this.FormatLine(lines[i]);
 
-            var hli = new Regex($@"(\S*){this._selectedLanguage.At} .*\)");
+            li = li.Replace("&lt;", "<span>&lt;</span>").Replace("&gt;", "<span>&gt;</span>");
 
-            if (hli.IsMatch(line))
-            {
-                // Frame
-                var regFrame = new Regex($@"(\S*){this._selectedLanguage.At} .*\)");
-                var partsFrame = regFrame.Match(line).Value;
-
-                partsFrame = partsFrame.Replace($"{this._selectedLanguage.At} ", string.Empty);
-
-                // Frame -> ParameterList
-                var regParamList = new Regex(@"\(.*\)");
-
-                var partsParamList = regParamList.Match(line).Value;
-
-                // Frame -> Params
-                var partsParams = partsParamList.Replace("(", string.Empty).Replace(")", string.Empty);
-                var arrParams = SplitParameterList(partsParams);
-                var parameterList = new StringBuilder();
-
-                for (var index = 0; index < arrParams.Length; index++)
-                {
-                    var parameter = arrParams[index];
-                    if (string.IsNullOrEmpty(parameter))
-                    {
-                        continue;
-                    }
-
-                    var cleanedParameter = parameter.TrimStart().Split(' ');
-
-                    var paramType = cleanedParameter[0];
-                    if (string.IsNullOrEmpty(cleanedParameter[0]))
-                    {
-                        continue;
-                    }
-
-                    var theParam = $"<span class=\"{this._options.ParamTypeCssClass}\">{paramType}</span>";
-                    if (cleanedParameter.Length > 1)
-                    {
-                        var paramName = cleanedParameter[1];
-                        theParam += $" <span class=\"{this._options.ParamNameCssClass}\">{paramName}</span>";
-                    }
-
-                    parameterList.Append(index + 1 < arrParams.Length ? $"{theParam}, " : $"{theParam}");
-                }
-
-                var stringParamComplete = $"<span class=\"{this._options.ParamsListCssClass}\">({parameterList})</span>";
-
-                // Frame -> Type & Method
-                var partsTypeMethod = partsFrame.Replace(partsParamList, string.Empty).Replace("\r", string.Empty);
-                var arrTypeMethod = partsTypeMethod.Split('.').ToList();
-
-
-#if NET8_0_OR_GREATER
-                var method = arrTypeMethod[^1];
-#else
-                var method = arrTypeMethod[arrTypeMethod.Count -1];
-#endif
-
-                var type = partsTypeMethod.Replace($".{method}", string.Empty);
-                var stringTypeMethod =
-                    $"<span class=\"{this._options.TypeCssClass}\">{type}</span>.<span class=\"{this._options.MethodCssClass}\">{method}</span>";
-
-                // Construct Frame
-                var newPartsFrame = partsFrame.Replace(partsParamList, stringParamComplete)
-                    .Replace(partsTypeMethod, stringTypeMethod);
-
-                // Line
-                var regLine = new Regex($"(:{this._selectedLanguage.Line}.*)");
-
-                var partsLine = regLine.Match(line).Value;
-                partsLine = partsLine.Replace(":", string.Empty).Replace("\r", string.Empty);
-
-                // File => (!) text requires multiline to exec regex, otherwise it will return null.
-                var regFile = new Regex($"({this._selectedLanguage.In}\\s.*)", RegexOptions.Multiline);
-                var partsFile = regFile.Match(line).Value;
-                partsFile = partsFile.Replace("\r", string.Empty)
-                    .Replace($"{this._selectedLanguage.In} ", string.Empty)
-                    .Replace($":{partsLine}", string.Empty);
-
-                li = li.Replace(partsFrame, $"<span class=\"{this._options.FrameCssClass}\">{newPartsFrame}</span>");
-
-                if (!string.IsNullOrEmpty(partsFile))
-                {
-                    li = li.Replace(partsFile, $"<span class=\"{this._options.FileCssClass}\">{partsFile}</span>");
-                }
-
-                if (!string.IsNullOrEmpty(partsLine))
-                {
-                    li = li.Replace(partsLine, $"<span class=\"{this._options.LineCssClass}\">{partsLine}</span>");
-                }
-
-                li = li.Replace("&lt;", "<span>&lt;</span>").Replace("&gt;", "<span>&gt;</span>");
-
-                clone.Append(lines.Length - 1 == i ? li : $"{li}\n");
-            }
-            else
-            {
-                if (string.IsNullOrEmpty(line.Trim()))
-                {
-                    continue;
-                }
-
-                li = line;
-
-                clone.Append(lines.Length - 1 == i ? li : $"{li}\n");
-            }
+            clone.Append(lines.Length - 1 == i ? li : $"{li}\n");
         }
 
         return clone.ToString();
     }
 
     /// <summary>
-    /// Get the Current selected language
+    /// Get the language of the stack trace, based on the keyword used in the first recognized frame.
+    /// The language is not needed for parsing, it is for information only.
     /// </summary>
     /// <returns>
-    /// Returns the selected language
+    /// Returns the language name, or <c>null</c> if the language is unknown or no frame was recognized
     /// </returns>
     public string GetLanguage()
     {
@@ -277,22 +136,134 @@ public class StackTraceBeautify
     }
 
     /// <summary>
-    /// Get the Language
+    /// Highlights a single line, if it is a stack frame. Any other line is returned unchanged.
     /// </summary>
-    /// <param name="languageName">
-    /// The language name.
-    /// </param>
-    /// <param name="languages">
-    /// The languages.
+    /// <param name="line">
+    /// The line.
     /// </param>
     /// <returns>
-    /// The <see cref="Language"/>.
+    /// The <see cref="string"/>.
     /// </returns>
-    private static Language Search(string languageName, IReadOnlyCollection<Language> languages)
+    private string FormatLine(string line)
     {
-        var language = languages.FirstOrDefault(x => x.Name == languageName);
+        var match = FrameRegex.Match(line);
 
-        return language ?? languages.FirstOrDefault(x => x.Name == "english");
+        if (!match.Success)
+        {
+            return line;
+        }
+
+        this._selectedLanguage ??= this._languages.FirstOrDefault(x => x.At == match.Groups["at"].Value);
+
+        var typeMethod = match.Groups["typeMethod"];
+        var parameters = match.Groups["params"];
+        var file = match.Groups["file"];
+        var lineNumber = match.Groups["line"];
+
+        var result = new StringBuilder();
+
+        result.Append(line, 0, typeMethod.Index);
+        result.Append($"<span class=\"{this._options.FrameCssClass}\">");
+        result.Append(this.FormatTypeMethod(typeMethod.Value));
+        result.Append($"<span class=\"{this._options.ParamsListCssClass}\">({this.FormatParameters(parameters.Value)})</span>");
+        result.Append("</span>");
+
+        var position = match.Groups["frame"].Index + match.Groups["frame"].Length;
+
+        if (file.Success)
+        {
+            result.Append(line, position, file.Index - position);
+            result.Append($"<span class=\"{this._options.FileCssClass}\">{file.Value}</span>");
+            result.Append(line, file.Index + file.Length, lineNumber.Index - file.Index - file.Length);
+            result.Append($"<span class=\"{this._options.LineCssClass}\">{lineNumber.Value}</span>");
+
+            position = lineNumber.Index + lineNumber.Length;
+        }
+
+        result.Append(line, position, line.Length - position);
+
+        return result.ToString();
+    }
+
+    /// <summary>
+    /// Highlights the type and method name of a frame (e.g. "System.Int32.Parse").
+    /// </summary>
+    /// <param name="typeMethod">
+    /// The type and method name.
+    /// </param>
+    /// <returns>
+    /// The <see cref="string"/>.
+    /// </returns>
+    private string FormatTypeMethod(string typeMethod)
+    {
+        // Find the last dot that is not part of a generic argument list (e.g. "Method[System.String]")
+        var depth = 0;
+        var separator = -1;
+
+        for (var i = typeMethod.Length - 1; i >= 0 && separator < 0; i--)
+        {
+            switch (typeMethod[i])
+            {
+                case ']':
+                    depth++;
+                    break;
+                case '[':
+                    depth--;
+                    break;
+                case '.' when depth == 0:
+                    separator = i;
+                    break;
+            }
+        }
+
+        // Constructors (e.g. "System.Object..ctor") keep the leading dot in the method name
+        if (separator > 0 && typeMethod[separator - 1] == '.')
+        {
+            separator--;
+        }
+
+        var type = typeMethod.Substring(0, separator);
+        var method = typeMethod.Substring(separator + 1);
+
+        return
+            $"<span class=\"{this._options.TypeCssClass}\">{type}</span>.<span class=\"{this._options.MethodCssClass}\">{method}</span>";
+    }
+
+    /// <summary>
+    /// Highlights the parameter list of a frame (without the outer parens).
+    /// </summary>
+    /// <param name="parameters">
+    /// The parameters.
+    /// </param>
+    /// <returns>
+    /// The <see cref="string"/>.
+    /// </returns>
+    private string FormatParameters(string parameters)
+    {
+        var arrParams = SplitParameterList(parameters);
+        var parameterList = new StringBuilder();
+
+        for (var index = 0; index < arrParams.Length; index++)
+        {
+            var cleanedParameter = arrParams[index].Trim().Split(' ');
+
+            var paramType = cleanedParameter[0];
+            if (string.IsNullOrEmpty(paramType))
+            {
+                continue;
+            }
+
+            var theParam = $"<span class=\"{this._options.ParamTypeCssClass}\">{paramType}</span>";
+            if (cleanedParameter.Length > 1)
+            {
+                var paramName = cleanedParameter[1];
+                theParam += $" <span class=\"{this._options.ParamNameCssClass}\">{paramName}</span>";
+            }
+
+            parameterList.Append(index + 1 < arrParams.Length ? $"{theParam}, " : $"{theParam}");
+        }
+
+        return parameterList.ToString();
     }
 
     /// <summary>

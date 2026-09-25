@@ -75,8 +75,6 @@ public class BeautifyTests
 
         var result = beautify.Beautify(stack);
 
-        beautify.GetLanguage().Should().BeEquivalentTo("english");
-
         result.Should().BeEquivalentTo(expected);
     }
 
@@ -100,8 +98,6 @@ public class BeautifyTests
 
         var result = beautify.Beautify(stack);
 
-        beautify.GetLanguage().Should().BeEquivalentTo("english");
-
         result.Should().BeEquivalentTo(expected);
     }
 
@@ -122,8 +118,6 @@ public class BeautifyTests
         var beautify = new StackTraceBeautify();
 
         var result = beautify.Beautify(stack);
-
-        beautify.GetLanguage().Should().BeEquivalentTo("german");
 
         result.Should().BeEquivalentTo(expected);
     }
@@ -146,8 +140,6 @@ public class BeautifyTests
 
         var result = beautify.Beautify(stack);
 
-        beautify.GetLanguage().Should().BeEquivalentTo("danish");
-
         result.Should().BeEquivalentTo(expected);
     }
 
@@ -162,8 +154,8 @@ public class BeautifyTests
                                    en <span class="st-frame"><span class="st-type">System.Number</span>.<span class="st-method">ThrowOverflowOrFormatException</span><span class="st-frame-params">(<span class="st-param-type">ParsingStatus</span> <span class="st-param-name">status</span>, <span class="st-param-type">TypeCode</span> <span class="st-param-name">type</span>)</span></span>
                                    en <span class="st-frame"><span class="st-type">System.Number</span>.<span class="st-method">ParseInt32</span><span class="st-frame-params">(<span class="st-param-type">ReadOnlySpan`1</span> <span class="st-param-name">value</span>, <span class="st-param-type">NumberStyles</span> <span class="st-param-name">styles</span>, <span class="st-param-type">NumberFormatInfo</span> <span class="st-param-name">info</span>)</span></span>
                                    en <span class="st-frame"><span class="st-type">System.Int32</span>.<span class="st-method">Parse</span><span class="st-frame-params">(<span class="st-param-type">String</span> <span class="st-param-name">s</span>)</span></span>
-                                   en <span class="st-frame"><span class="st-type">MyNamespace.IntParser</span>.<span class="st-method">Parse</span><span class="st-frame-params">(<span class="st-param-type">String</span> <span class="st-param-name">s</span>)</span></span> en C:\apps\MyNamespace\IntParser.cs:<span class="st-line">línea 11</span>
-                                   en <span class="st-frame"><span class="st-type">MyNamespace.Program</span>.<span class="st-method">Main</span><span class="st-frame-params">(<span class="st-param-type">String[]</span> <span class="st-param-name">args</span>)</span></span> en C:\apps\MyNamespace\Program.cs:<span class="st-line">línea 12</span>
+                                   en <span class="st-frame"><span class="st-type">MyNamespace.IntParser</span>.<span class="st-method">Parse</span><span class="st-frame-params">(<span class="st-param-type">String</span> <span class="st-param-name">s</span>)</span></span> en <span class="st-file">C:\apps\MyNamespace\IntParser.cs</span>:<span class="st-line">línea 11</span>
+                                   en <span class="st-frame"><span class="st-type">MyNamespace.Program</span>.<span class="st-method">Main</span><span class="st-frame-params">(<span class="st-param-type">String[]</span> <span class="st-param-name">args</span>)</span></span> en <span class="st-file">C:\apps\MyNamespace\Program.cs</span>:<span class="st-line">línea 12</span>
                                 """;
 
         const string stack = """
@@ -202,8 +194,6 @@ public class BeautifyTests
 
         var result = beautify.Beautify(stack);
 
-        beautify.GetLanguage().Should().BeEquivalentTo("spanish");
-
         result.Should().BeEquivalentTo(expected);
     }
 
@@ -225,8 +215,6 @@ public class BeautifyTests
 
         var result = beautify.Beautify(stack);
 
-        beautify.GetLanguage().Should().BeEquivalentTo("russian");
-
         result.Should().BeEquivalentTo(expected);
     }
 
@@ -243,8 +231,6 @@ public class BeautifyTests
         var beautify = new StackTraceBeautify();
 
         var result = beautify.Beautify(stack);
-
-        beautify.GetLanguage().Should().BeEquivalentTo("chinese");
 
         result.Should().BeEquivalentTo(expected);
     }
@@ -293,8 +279,8 @@ public class BeautifyTests
                                    場所 <span class="st-frame"><span class="st-type">System.Number</span>.<span class="st-method">ThrowOverflowOrFormatException</span><span class="st-frame-params">(<span class="st-param-type">ParsingStatus</span> <span class="st-param-name">status</span>, <span class="st-param-type">TypeCode</span> <span class="st-param-name">type</span>)</span></span>
                                    場所 <span class="st-frame"><span class="st-type">System.Number</span>.<span class="st-method">ParseInt32</span><span class="st-frame-params">(<span class="st-param-type">ReadOnlySpan`1</span> <span class="st-param-name">value</span>, <span class="st-param-type">NumberStyles</span> <span class="st-param-name">styles</span>, <span class="st-param-type">NumberFormatInfo</span> <span class="st-param-name">info</span>)</span></span>
                                    場所 <span class="st-frame"><span class="st-type">System.Int32</span>.<span class="st-method">Parse</span><span class="st-frame-params">(<span class="st-param-type">String</span> <span class="st-param-name">s</span>)</span></span>
-                                   場所 <span class="st-frame"><span class="st-type">MyNamespace.IntParser</span>.<span class="st-method">Parse</span><span class="st-frame-params">(<span class="st-param-type">String</span> <span class="st-param-name">s</span>)</span></span> 場所 C:\apps\MyNamespace\IntParser.cs:<span class="st-line">行 11</span>
-                                   場所 <span class="st-frame"><span class="st-type">MyNamespace.Program</span>.<span class="st-method">Main</span><span class="st-frame-params">(<span class="st-param-type">String[]</span> <span class="st-param-name">args</span>)</span></span> 場所 C:\apps\MyNamespace\Program.cs:<span class="st-line">行 12</span>
+                                   場所 <span class="st-frame"><span class="st-type">MyNamespace.IntParser</span>.<span class="st-method">Parse</span><span class="st-frame-params">(<span class="st-param-type">String</span> <span class="st-param-name">s</span>)</span></span> 場所 <span class="st-file">C:\apps\MyNamespace\IntParser.cs</span>:<span class="st-line">行 11</span>
+                                   場所 <span class="st-frame"><span class="st-type">MyNamespace.Program</span>.<span class="st-method">Main</span><span class="st-frame-params">(<span class="st-param-type">String[]</span> <span class="st-param-name">args</span>)</span></span> 場所 <span class="st-file">C:\apps\MyNamespace\Program.cs</span>:<span class="st-line">行 12</span>
                                 """;
 
         const string stack = """
@@ -311,6 +297,56 @@ public class BeautifyTests
         var result = beautify.Beautify(stack);
 
         beautify.GetLanguage().Should().BeEquivalentTo("japanese");
+
+        result.Should().BeEquivalentTo(expected);
+    }
+
+    /// <summary>
+    /// Beautify Test with a Stack Trace in a language that is not in the language list (Italian)
+    /// </summary>
+    [Test]
+    public void StackTraceUnknownLanguageTest1()
+    {
+        const string expected = """
+                                System.FormatException: Formato della stringa di input non corretto.
+                                   in <span class="st-frame"><span class="st-type">System.Int32</span>.<span class="st-method">Parse</span><span class="st-frame-params">(<span class="st-param-type">String</span> <span class="st-param-name">s</span>)</span></span>
+                                   in <span class="st-frame"><span class="st-type">MyNamespace.Program</span>.<span class="st-method">Main</span><span class="st-frame-params">(<span class="st-param-type">String[]</span> <span class="st-param-name">args</span>)</span></span> in <span class="st-file">C:\apps\MyNamespace\Program.cs</span>:<span class="st-line">riga 12</span>
+                                """;
+
+        const string stack = """
+                             System.FormatException: Formato della stringa di input non corretto.
+                                in System.Int32.Parse(String s)
+                                in MyNamespace.Program.Main(String[] args) in C:\apps\MyNamespace\Program.cs:riga 12
+                             """;
+
+        var beautify = new StackTraceBeautify();
+
+        var result = beautify.Beautify(stack);
+
+        beautify.GetLanguage().Should().BeNull();
+
+        result.Should().BeEquivalentTo(expected);
+    }
+
+    /// <summary>
+    /// Beautify Test with constructors, generic methods and linux paths
+    /// </summary>
+    [Test]
+    public void StackTraceConstructorAndGenericsTest1()
+    {
+        const string expected = """
+                                System.InvalidOperationException: Failed
+                                   at <span class="st-frame"><span class="st-type">MyNamespace.Worker</span>.<span class="st-method">.ctor</span><span class="st-frame-params">(<span class="st-param-type">String</span> <span class="st-param-name">name</span>)</span></span> in <span class="st-file">/src/app/Worker.cs</span>:<span class="st-line">line 7</span>
+                                   at <span class="st-frame"><span class="st-type">MyNamespace.Worker</span>.<span class="st-method">Run[System.String]</span><span class="st-frame-params">(<span class="st-param-type">Dictionary`2[System.String,System.Int32]</span> <span class="st-param-name">map</span>)</span></span>
+                                """;
+
+        const string stack = """
+                             System.InvalidOperationException: Failed
+                                at MyNamespace.Worker..ctor(String name) in /src/app/Worker.cs:line 7
+                                at MyNamespace.Worker.Run[System.String](Dictionary`2[System.String,System.Int32] map)
+                             """;
+
+        var result = new StackTraceBeautify().Beautify(stack);
 
         result.Should().BeEquivalentTo(expected);
     }
