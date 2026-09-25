@@ -28,10 +28,17 @@ public class StackTraceBeautify
 {
     /// <summary>
     /// Matches a complete stack frame line, independent of the language of the stack trace:
-    /// "{at} Type.Method(params)", optionally followed by " {in} file:{line} number".
+    /// "{at} Type.Method(params)", optionally followed by the file and line information in one of the
+    /// formats used by the .NET translations (see mscorlib "Word_At" and "StackTrace_InFileLineNumber"):
+    /// " {in} file:{line} number" (most languages, German adds a trailing dot),
+    /// " {in} file, {line} number" (Hungarian: "hely: {0}, sor: {1}") or
+    /// " file {in}: {line} number" (Turkish: "{0} içinde: satır {1}").
     /// </summary>
     private static readonly Regex FrameRegex = new(
-        @"^\s*(?<at>\S+)\s+(?<frame>(?<typeMethod>[^\s()]*\.[^\s()]+)\((?<params>[^()]*)\))(?:\s+\S+\s+(?<file>.+?):(?<line>[^\s:]+\s+\d+))?\s*$",
+        @"^\s*(?<at>\S+|\S+(?:\s+\S+){1,2}:)\s+"
+        + @"(?<frame>(?<typeMethod>[^\s()]*\.[^\s()]+)\((?<params>[^()]*)\))"
+        + @"(?:\s+[^\s\\/.]+\s+(?<file>.+?)[:,]\s*(?<line>[^\s:,]+:?\s+\d+)\.?"
+        + @"|\s+(?<file>.+?)\s+[^\s\\/.]+:\s*(?<line>[^\s:,]+\s+\d+)\.?)?\s*$",
         RegexOptions.Compiled);
 
     /// <summary>
@@ -153,7 +160,9 @@ public class StackTraceBeautify
             return line;
         }
 
-        this._selectedLanguage ??= this._languages.FirstOrDefault(x => x.At == match.Groups["at"].Value);
+        var at = Regex.Replace(match.Groups["at"].Value, @"\s+", " ");
+
+        this._selectedLanguage ??= this._languages.FirstOrDefault(x => x.At == at);
 
         var typeMethod = match.Groups["typeMethod"];
         var parameters = match.Groups["params"];
@@ -338,14 +347,30 @@ public class StackTraceBeautify
     {
         return
         [
+            // Keywords of the .NET Framework translations (mscorlib resources "Word_At" and "StackTrace_InFileLineNumber").
+            // Norwegian uses the same keywords as Danish and is detected as Danish.
             new Language { Name = "english", At = "at", In = "in", Line = "line" },
-            new Language { Name = "danish", At = "ved", In = "i", Line = "linje" },
-            new Language { Name = "german", At = "bei", In = "in", Line = "Zeile" },
-            new Language { Name = "spanish", At = "en", In = "en", Line = "línea" },
-            new Language { Name = "russian", At = "в", In = "в", Line = "строка" },
+            new Language { Name = "arabic", At = "عند", In = "في", Line = "السطر" },
             new Language { Name = "chinese", At = "在", In = "位置", Line = "行号" },
+            new Language { Name = "chinese-traditional", At = "於", In = "於", Line = "行" },
+            new Language { Name = "czech", At = "v", In = "v", Line = "řádek" },
+            new Language { Name = "danish", At = "ved", In = "i", Line = "linje" },
+            new Language { Name = "dutch", At = "bij", In = "in", Line = "regel" },
+            new Language { Name = "finnish", At = "kohteessa", In = "tiedostossa", Line = "rivillä" },
             new Language { Name = "french", At = "à", In = "dans", Line = "ligne" },
-            new Language { Name = "japanese", At = "場所", In = "場所", Line = "行" }
+            new Language { Name = "german", At = "bei", In = "in", Line = "Zeile" },
+            new Language { Name = "greek", At = "σε", In = "στο", Line = "γραμμή" },
+            new Language { Name = "hebrew", At = "ב-", In = "ב-", Line = "שורה" },
+            new Language { Name = "hungarian", At = "a következő helyen:", In = "hely:", Line = "sor:" },
+            new Language { Name = "italian", At = "in", In = "in", Line = "riga" },
+            new Language { Name = "japanese", At = "場所", In = "場所", Line = "行" },
+            new Language { Name = "korean", At = "위치:", In = "파일", Line = "줄" },
+            new Language { Name = "polish", At = "w", In = "w", Line = "wiersz" },
+            new Language { Name = "portuguese", At = "em", In = "na", Line = "linha" },
+            new Language { Name = "russian", At = "в", In = "в", Line = "строка" },
+            new Language { Name = "spanish", At = "en", In = "en", Line = "línea" },
+            new Language { Name = "swedish", At = "vid", In = "i", Line = "rad" },
+            new Language { Name = "turkish", At = "konum:", In = "içinde:", Line = "satır" }
         ];
     }
 }

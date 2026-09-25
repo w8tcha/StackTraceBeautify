@@ -302,7 +302,7 @@ public class BeautifyTests
     }
 
     /// <summary>
-    /// Beautify Test with a Stack Trace in a language that is not in the language list (Italian)
+    /// Beautify Test with Italian Stack Trace
     /// </summary>
     [Test]
     public void StackTraceUnknownLanguageTest1()
@@ -323,7 +323,7 @@ public class BeautifyTests
 
         var result = beautify.Beautify(stack);
 
-        beautify.GetLanguage().Should().BeNull();
+        beautify.GetLanguage().Should().BeEquivalentTo("italian");
 
         result.Should().BeEquivalentTo(expected);
     }
@@ -349,5 +349,57 @@ public class BeautifyTests
         var result = new StackTraceBeautify().Beautify(stack);
 
         result.Should().BeEquivalentTo(expected);
+    }
+
+    /// <summary>
+    /// Parsing and language detection with the keywords of all .NET Framework translations
+    /// (mscorlib resources "Word_At" and "StackTrace_InFileLineNumber").
+    /// </summary>
+    [TestCase("at", "in {0}:line {1}", "line", "english")]
+    [TestCase("عند", "في {0}:السطر {1}", "السطر", "arabic")]
+    [TestCase("在", "位置 {0}:行号 {1}", "行号", "chinese")]
+    [TestCase("於", "於 {0}: 行 {1}", "行", "chinese-traditional")]
+    [TestCase("v", "v {0}:řádek {1}", "řádek", "czech")]
+    [TestCase("ved", "i {0}:linje {1}", "linje", "danish")]
+    [TestCase("bij", "in {0}:regel {1}", "regel", "dutch")]
+    [TestCase("kohteessa", "tiedostossa {0}:rivillä {1}", "rivillä", "finnish")]
+    [TestCase("à", "dans {0}:ligne {1}", "ligne", "french")]
+    [TestCase("bei", "in {0}:Zeile {1}.", "Zeile", "german")]
+    [TestCase("σε", "στο {0}:γραμμή {1}", "γραμμή", "greek")]
+    [TestCase("ב- ", "ב- {0}:שורה {1}", "שורה", "hebrew")]
+    [TestCase("a következő helyen:", "hely: {0}, sor: {1}", "sor:", "hungarian")]
+    [TestCase("in", "in {0}:riga {1}", "riga", "italian")]
+    [TestCase("場所", "場所 {0}:行 {1}", "行", "japanese")]
+    [TestCase("위치:", "파일 {0}:줄 {1}", "줄", "korean")]
+    [TestCase("ved", "i {0}:linje {1}", "linje", "danish")] // Norwegian
+    [TestCase("w", "w {0}:wiersz {1}", "wiersz", "polish")]
+    [TestCase("em", "na {0}:linha {1}", "linha", "portuguese")] // Portuguese (Brazil)
+    [TestCase("em", "em {0}:line {1}", "line", "portuguese")] // Portuguese (Portugal)
+    [TestCase("в", "в {0}:строка {1}", "строка", "russian")]
+    [TestCase("en", "en {0}:línea {1}", "línea", "spanish")]
+    [TestCase("vid", "i {0}:rad {1}", "rad", "swedish")]
+    [TestCase("konum:", "{0} içinde: satır {1}", "satır", "turkish")]
+    [TestCase("xyz", "abc {0}:foo {1}", "foo", null)]
+    public void LanguageTest(string at, string fileLineFormat, string lineWord, string language)
+    {
+        const string file = @"C:\apps\My Namespace\Program.cs";
+
+        // Same composition as the .NET Framework: "   " + Word_At + " " + method + " " + StackTrace_InFileLineNumber
+        var stack = $"System.Exception: Error\n   {at} MyNamespace.Worker.Run()\n   {at} MyNamespace.Program.Main(String[] args) {string.Format(fileLineFormat, file, 12)}";
+
+        var expectedFileLine = string.Format(
+            fileLineFormat.Replace($"{lineWord} {{1}}", "{1}"),
+            $"<span class=\"st-file\">{file}</span>",
+            $"<span class=\"st-line\">{lineWord} 12</span>");
+
+        var expected = $"System.Exception: Error\n   {at} <span class=\"st-frame\"><span class=\"st-type\">MyNamespace.Worker</span>.<span class=\"st-method\">Run</span><span class=\"st-frame-params\">()</span></span>\n   {at} <span class=\"st-frame\"><span class=\"st-type\">MyNamespace.Program</span>.<span class=\"st-method\">Main</span><span class=\"st-frame-params\">(<span class=\"st-param-type\">String[]</span> <span class=\"st-param-name\">args</span>)</span></span> {expectedFileLine}";
+
+        var beautify = new StackTraceBeautify();
+
+        var result = beautify.Beautify(stack);
+
+        beautify.GetLanguage().Should().Be(language);
+
+        result.Should().Be(expected);
     }
 }

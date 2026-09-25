@@ -13,6 +13,11 @@ The parser does not depend on the language of the stack trace. Frames are recogn
 (`<at> Type.Method(params) [<in> file:<line> number]`), so stack traces in any language are supported,
 e.g. Danish, English, French, Japanese, German, Spanish, Russian, Chinese, ...
 
+`GetLanguage()` returns the detected language (for information only) for all .NET Framework translations:
+English, Arabic, Chinese (Simplified and Traditional), Czech, Danish, Dutch, Finnish, French, German, Greek, Hebrew,
+Hungarian, Italian, Japanese, Korean, Polish, Portuguese, Russian, Spanish, Swedish and Turkish
+(Norwegian uses the same keywords as Danish and is detected as Danish).
+
 #### Demo
 [Stack Trace Formatter - Online pretty print of .NET stack traces](https://elmah.io/tools/stack-trace-formatter/)
 
