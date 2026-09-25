@@ -1,12 +1,5 @@
 ﻿/*!
- * .NET Port of jQuery Plugin netStack
- * License : Apache 2
- * Author : Ingo Herbote
- * Url: https://github.com/elmahio/netStack.js
- *
- *
- * Original 
- * A simple and easy jQuery plugin for highlighting .NET stack traces
+ * .NET Port of tje JavaScript library for highlighting .NET stack traces
  * License : Apache 2
  * Author : https://elmah.io
  * Url: https://github.com/elmahio/netStack.js
