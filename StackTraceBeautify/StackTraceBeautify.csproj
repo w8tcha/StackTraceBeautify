@@ -4,7 +4,7 @@
 	  <TargetFrameworks>net481;netstandard2.1;net9.0;net10.0</TargetFrameworks>
 	  <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
 	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-	  <Description>A simple and Libary for highlighting .NET stack traces. It converts a Stack Trace (String) in to an html highlighted (beautified) String</Description>
+	  <Description>A simple and Libary for highlighting .NET, Java, JavaScript, Python, PHP, Ruby and Go stack traces. It converts a Stack Trace (String) in to an html highlighted (beautified) String</Description>
 	  <PackageReadmeFile>README.md</PackageReadmeFile>
 	  <RepositoryType>git</RepositoryType>
 	  <PackageProjectUrl>https://github.com/w8tcha/StackTraceBeautify</PackageProjectUrl>

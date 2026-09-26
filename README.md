@@ -6,10 +6,22 @@
 
 ![build status](https://github.com/w8tcha/StackTraceBeautify/actions/workflows/build.yml/badge.svg)
 
-A simple Library for highlighting .NET stack traces. It converts a Stack Trace (String) in to an html highlighted (beautified) String
+A simple Library for highlighting .NET, Java, JavaScript, Python, PHP, Ruby and Go stack traces. It converts a Stack Trace (String) in to an html highlighted (beautified) String
+
+#### Stacktrace - Runtime support
+* **.NET** - `at Type.Method(String s) in file.cs:line 12`
+* **Java** (and other JVM languages like Kotlin or Scala) - `at com.example.Type.method(Type.java:12)`
+* **JavaScript** - V8 (Chrome, Edge, Node.js): `at Type.method (file.js:12:5)`, Firefox and Safari: `method@file.js:12:5`
+* **Python** - `File "file.py", line 12, in function`
+* **PHP** - `#0 file.php(12): Type->method('abc')`
+* **Ruby** - `from file.rb:12:in 'Type#method'`
+* **Go** - `main.(*Type).Method(0x1)` followed by `/path/file.go:12 +0x1d`
+
+The runtime is detected from the first recognized stack frame, `GetRuntime()` returns the detected runtime.
+To skip the detection, set the runtime in the options (`Runtime = StackTraceRuntime.Java`).
 
 #### Stacktrace - Language support
-The parser does not depend on the language of the stack trace. Frames are recognized by their structure
+The .NET parser does not depend on the language of the stack trace. Frames are recognized by their structure
 (`<at> Type.Method(params) [<in> file:<line> number]`), so stack traces in any language are supported,
 e.g. Danish, English, French, Japanese, German, Spanish, Russian, Chinese, ...
 
@@ -39,7 +51,9 @@ var bs = new StackTraceBeautify(new Options
                                ParamTypeCssClass = "st-param-type",
                                ParamNameCssClass = "st-param-name",
                                FileCssClass = "st-file",
-                               LineCssClass = "st-line"
+                               LineCssClass = "st-line",
+                               ColumnCssClass = "st-column",
+                               Runtime = StackTraceRuntime.Auto
                            });
 ```
 
@@ -53,6 +67,7 @@ pre, code {background-color:#333; color: #ffffff;}
 .st-param-name {color: #ffffff;}
 .st-file {color:#f8b068;}
 .st-line {color:#ff4f68;}
+.st-column {color:#ff4f68;}
 ```
 
 ---

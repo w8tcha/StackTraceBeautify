@@ -20,19 +20,109 @@ using System.Text.RegularExpressions;
 public class StackTraceBeautify
 {
     /// <summary>
-    /// Matches a complete stack frame line, independent of the language of the stack trace:
+    /// Matches a .NET stack frame line, independent of the language of the stack trace:
     /// "{at} Type.Method(params)", optionally followed by the file and line information in one of the
     /// formats used by the .NET translations (see mscorlib "Word_At" and "StackTrace_InFileLineNumber"):
     /// " {in} file:{line} number" (most languages, German adds a trailing dot),
     /// " {in} file, {line} number" (Hungarian: "hely: {0}, sor: {1}") or
     /// " file {in}: {line} number" (Turkish: "{0} içinde: satır {1}").
     /// </summary>
-    private static readonly Regex FrameRegex = new(
+    private static readonly Regex DotNetFrameRegex = new(
         @"^\s*(?<at>\S+|\S+(?:\s+\S+){1,2}:)\s+"
-        + @"(?<frame>(?<typeMethod>[^\s()]*\.[^\s()]+)\((?<params>[^()]*)\))"
+        + @"(?<typeMethod>[^\s()]*\.[^\s()]+)\((?<params>[^()]*)\)"
         + @"(?:\s+[^\s\\/.]+\s+(?<file>.+?)[:,]\s*(?<line>[^\s:,]+:?\s+\d+)\.?"
         + @"|\s+(?<file>.+?)\s+[^\s\\/.]+:\s*(?<line>[^\s:,]+\s+\d+)\.?)?\s*$",
         RegexOptions.Compiled);
+
+    /// <summary>
+    /// Matches a Java (JVM) stack frame line: "at [module/]Type.method(File.java:12)", where the location can also be
+    /// "Native Method", "Unknown Source" or "SourceFile:12" (Android), optionally followed by logback's "~[app.jar:1.0]".
+    /// </summary>
+    private static readonly Regex JavaFrameRegex = new(
+        @"^\s*at\s+(?:[^\s()/]*/){0,2}"
+        + @"(?<typeMethod>[^\s()/]+\.[^\s()/]+)"
+        + @"\((?:(?<file>[^\s():]+\.(?:java|kt|kts|scala|groovy|clj|cljc)|SourceFile)(?::(?<line>\d+))?"
+        + @"|Native Method|Unknown Source(?::(?<line>\d+))?)\)"
+        + @"(?:\s+~?\[[^\]]*\])?\s*$",
+        RegexOptions.Compiled);
+
+    /// <summary>
+    /// Matches a V8 (Chrome, Edge, Node.js) stack frame line: "at [new |async ]Type.method [as alias] (file.js:12:5)",
+    /// "at Type.method (native)" or "at file.js:12:5" (anonymous function).
+    /// </summary>
+    private static readonly Regex V8FrameRegex = new(
+        @"^\s*at\s+(?:(?:new|async)\s+)?"
+        + @"(?:(?<typeMethod>[^\s()]+(?:\s\[as\s[^\s\]]+\])?)\s+"
+        + @"\((?:(?<file>[^()]+?):(?<line>\d+)(?::(?<column>\d+))?|native|&lt;anonymous&gt;|index\s\d+)\)"
+        + @"|(?<file>[^\s()]+?):(?<line>\d+)(?::(?<column>\d+))?)\s*$",
+        RegexOptions.Compiled);
+
+    /// <summary>
+    /// Matches a Firefox or Safari stack frame line: "Type.method@file.js:12:5", "@file.js:12:5" (anonymous function),
+    /// "global code@file.js:12:5" or "method@[native code]".
+    /// </summary>
+    private static readonly Regex GeckoFrameRegex = new(
+        @"^\s*(?<typeMethod>[^@\s]*|(?:global|module|eval)\scode)@"
+        + @"(?:(?<file>.+?):(?<line>\d+):(?<column>\d+)|\[native code\])\s*$",
+        RegexOptions.Compiled);
+
+    /// <summary>
+    /// Matches a Python stack frame line: File "file.py", line 12, in function
+    /// (the source code line that follows is left unchanged).
+    /// </summary>
+    private static readonly Regex PythonFrameRegex = new(
+        @"^\s*File\s+""(?<file>[^""]+)"",\s+line\s+(?<line>\d+)(?:,\s+in\s+(?<typeMethod>\S+))?\s*$",
+        RegexOptions.Compiled);
+
+    /// <summary>
+    /// Matches a PHP stack frame line: "#0 file.php(12): Type->method(args)", "#0 file.php(12): Type::method(args)"
+    /// or "#0 [internal function]: function(args)".
+    /// </summary>
+    private static readonly Regex PhpFrameRegex = new(
+        @"^\s*#\d+\s+(?:(?<file>[^()]+?)\((?<line>\d+)\)|\[internal function\]):\s+"
+        + @"(?<typeMethod>(?:[^\s(){}]|\{[^{}]*\})+)\((?<args>.*)\)\s*$",
+        RegexOptions.Compiled);
+
+    /// <summary>
+    /// Matches a Ruby stack frame line: "[from ]file.rb:12:in `method'" (Ruby up to 3.3) or
+    /// "[from ]file.rb:12:in 'Type#method'" (Ruby 3.4+), optionally followed by the exception message.
+    /// </summary>
+    private static readonly Regex RubyFrameRegex = new(
+        @"^\s*(?:from\s+)?(?<file>\S.*?):(?<line>\d+):in\s+[`']"
+        + @"(?:(?:block|rescue|ensure)(?:\s\(\d+\slevels\))?\sin\s)?(?<typeMethod>[^`'\s]+)'",
+        RegexOptions.Compiled);
+
+    /// <summary>
+    /// Matches the function line of a Go stack frame: "pkg.function(args)", "pkg.(*Type).Method(args)",
+    /// "panic(args)" or "created by pkg.function[ in goroutine 1]".
+    /// </summary>
+    private static readonly Regex GoFunctionRegex = new(
+        @"^(?:(?<typeMethod>panic|(?=[^\s(]*\.)(?:[^\s()]|\(\*?[^\s()]+\))+)\((?<args>[^()]*)\)"
+        + @"|created\sby\s(?<typeMethod>\S+)(?:\sin\sgoroutine\s\d+)?)\s*$",
+        RegexOptions.Compiled);
+
+    /// <summary>
+    /// Matches the location line of a Go stack frame (follows the function line): "	/path/file.go:12 +0x1d".
+    /// </summary>
+    private static readonly Regex GoLocationRegex = new(
+        @"^\s+(?<file>\S+\.(?:go|s)):(?<line>\d+)(?:\s+(?:\+0x[0-9a-f]+|\w+=0x[0-9a-f]+))*\s*$",
+        RegexOptions.Compiled);
+
+    /// <summary>
+    /// The frame patterns and type/method separators of each runtime, in detection order.
+    /// Java comes before .NET, because Java frames also have the structure of a .NET frame (the location
+    /// would be taken as the parameter list). Go comes last, because its function lines are the least specific.
+    /// </summary>
+    private static readonly (StackTraceRuntime Runtime, string[] Separators, Regex[] Patterns)[] Parsers =
+    [
+        (StackTraceRuntime.Java, ["."], [JavaFrameRegex]),
+        (StackTraceRuntime.JavaScript, ["."], [V8FrameRegex, GeckoFrameRegex]),
+        (StackTraceRuntime.Python, ["."], [PythonFrameRegex]),
+        (StackTraceRuntime.Php, ["-&gt;", "::"], [PhpFrameRegex]),
+        (StackTraceRuntime.Ruby, ["#", "."], [RubyFrameRegex]),
+        (StackTraceRuntime.DotNet, ["."], [DotNetFrameRegex]),
+        (StackTraceRuntime.Go, ["."], [GoFunctionRegex, GoLocationRegex])
+    ];
 
     /// <summary>
     /// The options.
@@ -50,6 +140,11 @@ public class StackTraceBeautify
     private Language _selectedLanguage;
 
     /// <summary>
+    /// The selected runtime.
+    /// </summary>
+    private StackTraceRuntime? _selectedRuntime;
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="StackTraceBeautify"/> class.
     /// </summary>
     public StackTraceBeautify()
@@ -64,7 +159,8 @@ public class StackTraceBeautify
                                ParamTypeCssClass = "st-param-type",
                                ParamNameCssClass = "st-param-name",
                                FileCssClass = "st-file",
-                               LineCssClass = "st-line"
+                               LineCssClass = "st-line",
+                               ColumnCssClass = "st-column"
                            };
 
         this._languages = InitializeLanguages();
@@ -108,6 +204,7 @@ public class StackTraceBeautify
         var lines = sanitizedStack.Split('\n').Where(line => !string.IsNullOrWhiteSpace(line)).ToArray();
 
         this._selectedLanguage = null;
+        this._selectedRuntime = this._options.Runtime == StackTraceRuntime.Auto ? null : this._options.Runtime;
 
         var clone = new StringBuilder();
 
@@ -125,7 +222,8 @@ public class StackTraceBeautify
 
     /// <summary>
     /// Get the language of the stack trace, based on the keyword used in the first recognized frame.
-    /// The language is not needed for parsing, it is for information only.
+    /// The language is not needed for parsing, it is for information only. Only .NET stack traces are
+    /// translated, Java and JavaScript stack traces always return <c>null</c>.
     /// </summary>
     /// <returns>
     /// Returns the language name, or <c>null</c> if the language is unknown or no frame was recognized
@@ -133,6 +231,18 @@ public class StackTraceBeautify
     public string GetLanguage()
     {
         return this._selectedLanguage?.Name;
+    }
+
+    /// <summary>
+    /// Get the runtime of the stack trace: the runtime set in <see cref="Options.Runtime"/>, or the runtime
+    /// detected from the first recognized frame.
+    /// </summary>
+    /// <returns>
+    /// Returns the runtime, or <c>null</c> if the runtime is detected and no frame was recognized
+    /// </returns>
+    public StackTraceRuntime? GetRuntime()
+    {
+        return this._selectedRuntime;
     }
 
     /// <summary>
@@ -146,40 +256,43 @@ public class StackTraceBeautify
     /// </returns>
     private string FormatLine(string line)
     {
-        var match = FrameRegex.Match(line);
+        var (match, separators) = this.MatchFrame(line);
 
-        if (!match.Success)
+        if (match is null)
         {
             return line;
         }
 
-        var at = Regex.Replace(match.Groups["at"].Value, @"\s+", " ");
+        if (match.Groups["at"].Success)
+        {
+            var at = Regex.Replace(match.Groups["at"].Value, @"\s+", " ");
 
-        this._selectedLanguage ??= this._languages.FirstOrDefault(x => x.At == at);
+            this._selectedLanguage ??= this._languages.FirstOrDefault(x => x.At == at);
+        }
+
+        // The highlighted parts, sorted by their position in the line (Python has the file before the function)
+        var parts = new List<(int Index, int Length, string Html)>();
 
         var typeMethod = match.Groups["typeMethod"];
-        var parameters = match.Groups["params"];
-        var file = match.Groups["file"];
-        var lineNumber = match.Groups["line"];
+
+        if (typeMethod.Length > 0)
+        {
+            parts.Add(this.FormatFrame(line, typeMethod, match.Groups["params"], match.Groups["args"], separators));
+        }
+
+        AddPart(parts, match.Groups["file"], this._options.FileCssClass);
+        AddPart(parts, match.Groups["line"], this._options.LineCssClass);
+        AddPart(parts, match.Groups["column"], this._options.ColumnCssClass);
 
         var result = new StringBuilder();
+        var position = 0;
 
-        result.Append(line, 0, typeMethod.Index);
-        result.Append($"<span class=\"{this._options.FrameCssClass}\">");
-        result.Append(this.FormatTypeMethod(typeMethod.Value));
-        result.Append($"<span class=\"{this._options.ParamsListCssClass}\">({this.FormatParameters(parameters.Value)})</span>");
-        result.Append("</span>");
-
-        var position = match.Groups["frame"].Index + match.Groups["frame"].Length;
-
-        if (file.Success)
+        foreach (var (index, length, html) in parts.OrderBy(part => part.Index))
         {
-            result.Append(line, position, file.Index - position);
-            result.Append($"<span class=\"{this._options.FileCssClass}\">{file.Value}</span>");
-            result.Append(line, file.Index + file.Length, lineNumber.Index - file.Index - file.Length);
-            result.Append($"<span class=\"{this._options.LineCssClass}\">{lineNumber.Value}</span>");
+            result.Append(line, position, index - position);
+            result.Append(html);
 
-            position = lineNumber.Index + lineNumber.Length;
+            position = index + length;
         }
 
         result.Append(line, position, line.Length - position);
@@ -188,47 +301,151 @@ public class StackTraceBeautify
     }
 
     /// <summary>
-    /// Highlights the type and method name of a frame (e.g. "System.Int32.Parse").
+    /// Highlights the frame: the type and method name, followed by the parameter list (.NET: typed parameters,
+    /// PHP and Go: argument values), if there is one.
+    /// </summary>
+    private (int Index, int Length, string Html) FormatFrame(
+        string line,
+        Group typeMethod,
+        Group parameters,
+        Group arguments,
+        string[] separators)
+    {
+        var html = new StringBuilder();
+        var end = typeMethod.Index + typeMethod.Length;
+
+        html.Append($"<span class=\"{this._options.FrameCssClass}\">");
+        html.Append(this.FormatTypeMethod(typeMethod.Value, separators));
+
+        if (parameters.Success)
+        {
+            html.Append($"<span class=\"{this._options.ParamsListCssClass}\">({this.FormatParameters(parameters.Value)})</span>");
+
+            // Include the parens around the parameter list
+            end = parameters.Index + parameters.Length + 1;
+        }
+        else if (arguments.Success)
+        {
+            html.Append($"<span class=\"{this._options.ParamsListCssClass}\">({arguments.Value})</span>");
+
+            end = arguments.Index + arguments.Length + 1;
+        }
+
+        html.Append("</span>");
+
+        return (typeMethod.Index, end - typeMethod.Index, html.ToString());
+    }
+
+    /// <summary>
+    /// Finds the stack frame pattern of the selected runtime that matches the line. If the runtime is not
+    /// selected yet, the patterns of all runtimes are tried and the runtime of the first match is selected.
+    /// </summary>
+    /// <param name="line">
+    /// The line.
+    /// </param>
+    /// <returns>
+    /// The <see cref="Match"/> and the type/method separators of the runtime, or <c>null</c> if the line is not a stack frame.
+    /// </returns>
+    private (Match Match, string[] Separators) MatchFrame(string line)
+    {
+        foreach (var (runtime, separators, patterns) in Parsers)
+        {
+            if (this._selectedRuntime is not null && this._selectedRuntime != runtime)
+            {
+                continue;
+            }
+
+            foreach (var pattern in patterns)
+            {
+                var match = pattern.Match(line);
+
+                if (match.Success)
+                {
+                    this._selectedRuntime = runtime;
+                    return (match, separators);
+                }
+            }
+        }
+
+        return (null, null);
+    }
+
+    /// <summary>
+    /// Adds the highlighted group to the parts (if the group was matched).
+    /// </summary>
+    private static void AddPart(List<(int Index, int Length, string Html)> parts, Group group, string cssClass)
+    {
+        if (group.Success)
+        {
+            parts.Add((group.Index, group.Length, $"<span class=\"{cssClass}\">{group.Value}</span>"));
+        }
+    }
+
+    /// <summary>
+    /// Highlights the type and method name of a frame (e.g. "System.Int32.Parse" or PHP "App\Service-&gt;run").
     /// </summary>
     /// <param name="typeMethod">
     /// The type and method name.
     /// </param>
+    /// <param name="separators">
+    /// The separators between type and method name of the runtime (e.g. "." or PHP "-&gt;" and "::").
+    /// </param>
     /// <returns>
     /// The <see cref="string"/>.
     /// </returns>
-    private string FormatTypeMethod(string typeMethod)
+    private string FormatTypeMethod(string typeMethod, string[] separators)
     {
-        // Find the last dot that is not part of a generic argument list (e.g. "Method[System.String]")
+        // Find the last separator that is not part of a generic argument list (e.g. "Method[System.String]")
+        // or of a PHP closure name (e.g. "{closure:App\Service::run():12}")
         var depth = 0;
         var separator = -1;
+        var separatorLength = 0;
 
         for (var i = typeMethod.Length - 1; i >= 0 && separator < 0; i--)
         {
             switch (typeMethod[i])
             {
-                case ']':
+                case ']' or '}':
                     depth++;
                     break;
-                case '[':
+                case '[' or '{':
                     depth--;
                     break;
-                case '.' when depth == 0:
-                    separator = i;
+                default:
+                    if (depth == 0)
+                    {
+                        var found = separators.FirstOrDefault(
+                            s => i + 1 >= s.Length && string.CompareOrdinal(typeMethod, i + 1 - s.Length, s, 0, s.Length) == 0);
+
+                        if (found is not null)
+                        {
+                            separator = i + 1 - found.Length;
+                            separatorLength = found.Length;
+                        }
+                    }
+
                     break;
             }
         }
 
+        // Plain function names (e.g. JavaScript "main") have no type
+        if (separator < 0)
+        {
+            return $"<span class=\"{this._options.MethodCssClass}\">{typeMethod}</span>";
+        }
+
         // Constructors (e.g. "System.Object..ctor") keep the leading dot in the method name
-        if (separator > 0 && typeMethod[separator - 1] == '.')
+        if (separator > 0 && typeMethod[separator] == '.' && typeMethod[separator - 1] == '.')
         {
             separator--;
         }
 
         var type = typeMethod.Substring(0, separator);
-        var method = typeMethod.Substring(separator + 1);
+        var separatorText = typeMethod.Substring(separator, separatorLength);
+        var method = typeMethod.Substring(separator + separatorLength);
 
         return
-            $"<span class=\"{this._options.TypeCssClass}\">{type}</span>.<span class=\"{this._options.MethodCssClass}\">{method}</span>";
+            $"<span class=\"{this._options.TypeCssClass}\">{type}</span>{separatorText}<span class=\"{this._options.MethodCssClass}\">{method}</span>";
     }
 
     /// <summary>

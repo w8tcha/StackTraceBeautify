@@ -57,4 +57,15 @@ public class Options
     /// Gets or sets the source line CSS class.
     /// </summary>
     public string LineCssClass { get; set; }
+
+    /// <summary>
+    /// Gets or sets the source column CSS class (JavaScript stack traces only).
+    /// </summary>
+    public string ColumnCssClass { get; set; } = "st-column";
+
+    /// <summary>
+    /// Gets or sets the runtime of the stack traces. <see cref="StackTraceRuntime.Auto"/> (the default)
+    /// detects the runtime from the first recognized stack frame.
+    /// </summary>
+    public StackTraceRuntime Runtime { get; set; }
 }

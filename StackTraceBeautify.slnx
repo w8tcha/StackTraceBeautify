@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Build.props" />
+  </Folder>
   <Project Path="StackTraceBeautify.Tests/StackTraceBeautify.Tests.csproj" />
   <Project Path="StackTraceBeautify/StackTraceBeautify.csproj" />
 </Solution>
