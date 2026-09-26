@@ -1,5 +1,5 @@
 /*!
- * .NET Port of tje JavaScript library for highlighting .NET stack traces
+ * .NET Port of the JavaScript library for highlighting .NET stack traces
  * License : Apache 2
  * Author : https://elmah.io
  * Url: https://github.com/elmahio/netStack.js
