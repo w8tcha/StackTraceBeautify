@@ -11,6 +11,8 @@
 	  <RepositoryUrl>https://github.com/w8tcha/StackTraceBeautify</RepositoryUrl>
 	  <PackageTags>stacktrace;exception;log</PackageTags>
 	  <Version>$(VersionPrefix)</Version>
+	  <SignAssembly>true</SignAssembly>
+	  <AssemblyOriginatorKeyFile>../PublicKey.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <PropertyGroup>
