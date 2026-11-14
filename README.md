@@ -3,8 +3,8 @@
 .NET Port of [netStack.js](https://github.com/elmahio/netStack.js)
 
 [![NuGet](https://img.shields.io/nuget/v/StackTraceBeautify.svg)](https://nuget.org/packages/StackTraceBeautify) [![license](https://img.shields.io/hexpm/l/plug.svg)](#)
-
 ![build status](https://github.com/w8tcha/StackTraceBeautify/actions/workflows/build.yml/badge.svg)
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20Me-ff5e5b?logo=ko-fi&logoColor=white)](https://ko-fi.com/w8tcha)
 
 A simple Library for highlighting .NET, Java, JavaScript, Python, PHP, Ruby and Go stack traces. It converts a Stack Trace (String) in to an html highlighted (beautified) String
 
